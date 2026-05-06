@@ -4,11 +4,10 @@ import { ion } from "starlight-ion-theme";
 
 // https://astro.build/config
 export default defineConfig({
-  site: "https://louisescher.github.io",
-  base: "/starlight-ion-theme",
+  site: "https://sollinplayer.com",
   integrations: [
     starlight({
-      title: "Ion",
+      title: "SollinPlayer",
       logo: {
         dark: "./src/assets/ion-logo.svg",
         light: "./src/assets/ion-logo-light.svg",
@@ -22,22 +21,28 @@ export default defineConfig({
       ],
       sidebar: [
         {
-          label: "[home] Home",
+          label: "[home] 首页",
           link: "/",
         },
         {
-          label: "[list] Getting Started",
-          link: "/getting-started/",
+          label: "[lucide:download] 下载地址",
+          link: "/download/",
         },
         {
-          label: "[changelog] Changelog",
-          link: "/changelog/",
+          label: "[lucide:sparkles] 软件功能",
+          link: "/features/",
         },
         {
-          label: "[book] Reference",
-          autogenerate: {
-            directory: "reference",
-          },
+          label: "[lucide:play] 软件演示",
+          link: "/demo/",
+        },
+        {
+          label: "[lucide:smartphone] 手机端更新日志",
+          link: "/changelog-mobile/",
+        },
+        {
+          label: "[lucide:monitor] 电脑端更新日志",
+          link: "/changelog-desktop/",
         },
       ],
       customCss: [
@@ -54,17 +59,21 @@ export default defineConfig({
             iconDir: "./src/icons",
           },
           footer: {
-            text: "©️ Louis Escher 2025",
+            text: "SollinPlayer 软件官网",
             links: [
               {
-                text: "Homepage",
-                href: "https://lou.gg",
+                text: "下载地址",
+                href: "https://pan.ymxx.net/s/oakh9",
+              },
+              {
+                text: "手机端更新",
+                href: "https://sollinplayer.com/changelog-mobile/",
               },
             ],
             icons: [
               {
                 name: "github",
-                href: "https://github.com/louisescher/starlight-ion-theme",
+                href: "https://github.com",
               },
             ],
           },

@@ -1,38 +1,66 @@
 ---
-title: Ion
-description: Get started building your docs site with Starlight & the Ion theme.
+title: SollinPlayer
+description: SollinPlayer 官方网站，提供电脑端与手机端下载、更新日志、功能说明与演示入口。
 tableOfContents: false
 hero:
-  tagline: A sleek, modern theme for Starlight
+  tagline: 一个全能的音乐播放器
   image:
     dark: ../../assets/ion-logo.svg
     light: ../../assets/ion-logo-light.svg
   actions:
-    - text: Get started
-      link: /starlight-ion-theme/getting-started/
+    - text: 立即下载
+      link: /download/
       icon: right-arrow
       variant: primary
-    - text: Read the Starlight docs
-      link: https://starlight.astro.build
-      icon: external
+    - text: 查看功能
+      link: /features/
+      icon: right-arrow
 ---
 
 import { Card, CardGrid } from "@astrojs/starlight/components";
 
-## Features
+## 下载入口
 
 <CardGrid stagger>
-  <Card title="Custom Sidebar" icon="left-caret">
-    Ion comes with a custom sidebar that supports icons and groups.
+  <Card title="Android">
+    最新版本 `1.3.9`，下载地址：
+    [SollinPlayer1.3.9_arm64-v8a.apk](https://pan.ymxx.net/f/da6fp/SollinPlayer1.3.9_arm64-v8a.apk)
   </Card>
-  <Card title="Footer" icon="down-caret">
-    There's a footer that you can customize with your own links.
+  <Card title="iPhone / iPad">
+    最新版本 `1.3.9`，下载地址：
+    [SollinPlayer1.3.9.ipa](https://pan.ymxx.net/f/jgnSR/SollinPlayer1.3.9.ipa)
   </Card>
-  <Card title="Icons Everywhere" icon="astro">
-    Thanks to built-in `astro-icon` support, you can add icons to your sidebar,
-    footer, site titles and more.
+  <Card title="Windows">
+    最新版本 `1.2.8`，下载地址：
+    [桌面端下载](https://pan.ymxx.net/s/oakh9)
   </Card>
-  <Card title="Header Badges" icon="approve-check-circle">
-    You can add badges to your headings to draw attention to updated content.
+  <Card title="macOS">
+    最新版本 `1.2.8`，下载地址：
+    [桌面端下载](https://pan.ymxx.net/s/oakh9)
   </Card>
 </CardGrid>
+
+## 核心能力
+
+<CardGrid stagger>
+  <Card title="多样播放界面">
+    近期版本加入了 AM 高级版、素雅风、微信聊天等多种播放界面，并持续优化歌词与动画表现。
+  </Card>
+  <Card title="歌词与音质增强">
+    支持 TTML、逐字歌词、罗马音、翻译、自定义字号颜色，以及音质徽章和音质切换。
+  </Card>
+  <Card title="下载与本地管理">
+    支持下载命名规则、自定义备份、WebDAV、标签编辑器、本地音乐整理与导入能力。
+  </Card>
+  <Card title="发现与歌单体验">
+    覆盖推荐歌单、排行榜、歌手搜索、评论展示、歌单分页、快捷入口与多种平台切换方式。
+  </Card>
+</CardGrid>
+
+## 最近更新
+
+- 手机端最新版本：`1.3.9`，发布时间 `2026-04-30`
+- 电脑端最新版本：`1.2.8`，发布时间 `2026-04-30`
+- 手机端更新日志：[查看详情](/changelog-mobile/)
+- 电脑端更新日志：[查看详情](/changelog-desktop/)
+- 软件演示：[预留入口](/demo/)
