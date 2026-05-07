@@ -1,22 +1,139 @@
 ---
 title: 软件演示
-description: SollinPlayer 软件演示与展示入口。
+description: SollinPlayer 移动端与桌面端截图展示，覆盖播放界面、资料库、在线内容与个性化能力。
 ---
 
+import DemoCarousel from "../../components/DemoCarousel.astro";
+
+## 演示总览
+
+SollinPlayer 提供移动端与桌面端的完整音乐体验。这个页面按真实界面截图整理了常见使用场景，方便快速了解产品风格、功能覆盖和界面完成度。
+
+<div class="demo-highlight-grid">
+  <a class="demo-jump-card" href="#mobile-showcase">
+    <span class="demo-kicker">Mobile</span>
+    <h3>移动端界面</h3>
+    <p>覆盖在线播放、资料库、云备份、均衡器、识曲与多种播放器样式。</p>
+    <span class="demo-jump-meta">点击查看截图</span>
+  </a>
+  <a class="demo-jump-card" href="#desktop-showcase">
+    <span class="demo-kicker">Desktop</span>
+    <h3>桌面端工作流</h3>
+    <p>覆盖首页、搜索、下载管理、资料库、桌面歌词与界面高度自定义能力。</p>
+    <span class="demo-jump-meta">点击查看截图</span>
+  </a>
+</div>
+
+<div id="mobile-showcase"></div>
 ## 手机端演示
 
-- 演示视频：待补充
-- 截图集：待补充
-- 使用流程：待补充
+<div class="demo-group-grid demo-group-grid-mobile">
+  <section class="demo-group-card">
+    <h3>基础界面总览</h3>
+    <DemoCarousel
+      id="mobile-overview-carousel"
+      variant="mobile"
+      slides={[
+        { src: "/demo/mobile/在线界面.webp", alt: "SollinPlayer 移动端在线界面", caption: "在线界面" },
+        { src: "/demo/mobile/在线歌单页.webp", alt: "SollinPlayer 移动端在线歌单页", caption: "在线歌单页" },
+        { src: "/demo/mobile/本地资料库.webp", alt: "SollinPlayer 移动端本地资料库", caption: "本地资料库" },
+        { src: "/demo/mobile/听歌统计.webp", alt: "SollinPlayer 移动端听歌统计", caption: "听歌统计" },
+      ]}
+    />
+  </section>
 
-## 电脑端演示
+  <section class="demo-group-card">
+    <h3>在线内容与资料管理</h3>
+    <DemoCarousel
+      id="mobile-library-carousel"
+      variant="mobile"
+      slides={[
+        { src: "/demo/mobile/navidrome主页.webp", alt: "SollinPlayer 移动端 Navidrome 主页", caption: "Navidrome 主页" },
+        { src: "/demo/mobile/navidrome发现页.webp", alt: "SollinPlayer 移动端 Navidrome 发现页", caption: "Navidrome 发现页" },
+        { src: "/demo/mobile/navidrome-webdav音乐.webp", alt: "SollinPlayer 移动端 WebDAV 音乐管理", caption: "WebDAV 音乐管理" },
+        { src: "/demo/mobile/丰富的云备份.webp", alt: "SollinPlayer 移动端丰富的云备份", caption: "丰富的云备份" },
+      ]}
+    />
+  </section>
 
-- 演示视频：待补充
-- 截图集：待补充
-- 使用流程：待补充
+  <section class="demo-group-card">
+    <h3>播放体验与个性化</h3>
+    <DemoCarousel
+      id="mobile-player-carousel"
+      variant="mobile"
+      slides={[
+        { src: "/demo/mobile/eq调音.webp", alt: "SollinPlayer 移动端 EQ 调音", caption: "EQ 调音" },
+        { src: "/demo/mobile/听歌识曲.webp", alt: "SollinPlayer 移动端听歌识曲", caption: "听歌识曲" },
+        { src: "/demo/mobile/多样化设置.webp", alt: "SollinPlayer 移动端多样化设置", caption: "多样化设置" },
+      ]}
+    />
+  </section>
 
-## 预留入口
+  <section class="demo-group-card">
+    <h3>多种播放界面样式</h3>
+    <DemoCarousel
+      id="mobile-playstyle-carousel"
+      variant="mobile"
+      slides={[
+        { src: "/demo/mobile/多种播放界面样式/IMG_5915.webp", alt: "SollinPlayer 移动端播放界面样式一", caption: "播放器样式一" },
+        { src: "/demo/mobile/多种播放界面样式/IMG_5916.webp", alt: "SollinPlayer 移动端播放界面样式二", caption: "播放器样式二" },
+        { src: "/demo/mobile/多种播放界面样式/IMG_5917.webp", alt: "SollinPlayer 移动端播放界面样式三", caption: "播放器样式三" },
+        { src: "/demo/mobile/多种播放界面样式/IMG_5918.webp", alt: "SollinPlayer 移动端播放界面样式四", caption: "播放器样式四" },
+        { src: "/demo/mobile/多种播放界面样式/IMG_5919.webp", alt: "SollinPlayer 移动端播放界面样式五", caption: "播放器样式五" },
+        { src: "/demo/mobile/多种播放界面样式/IMG_5903.webp", alt: "SollinPlayer 移动端播放界面样式六", caption: "播放器样式六" },
+      ]}
+    />
+  </section>
+</div>
 
-- 产品截图专题：待补充
-- 功能上手视频：待补充
-- 常见使用场景演示：待补充
+<div id="desktop-showcase"></div>
+## 桌面端演示
+
+<div class="demo-group-grid demo-group-grid-desktop">
+  <section class="demo-group-card">
+    <h3>首页与播放总览</h3>
+    <DemoCarousel
+      id="desktop-overview-carousel"
+      variant="desktop"
+      slides={[
+        { src: "/demo/desktop/首页.webp", alt: "SollinPlayer 桌面端首页", caption: "首页总览" },
+        { src: "/demo/desktop/播放界面.webp", alt: "SollinPlayer 桌面端播放界面", caption: "播放界面" },
+      ]}
+    />
+  </section>
+
+  <section class="demo-group-card">
+    <h3>资料、搜索与下载流程</h3>
+    <DemoCarousel
+      id="desktop-library-carousel"
+      variant="desktop"
+      slides={[
+        { src: "/demo/desktop/资料库.webp", alt: "SollinPlayer 桌面端资料库", caption: "资料库" },
+        { src: "/demo/desktop/本地音乐.webp", alt: "SollinPlayer 桌面端本地音乐", caption: "本地音乐" },
+        { src: "/demo/desktop/搜索.webp", alt: "SollinPlayer 桌面端搜索界面", caption: "搜索" },
+        { src: "/demo/desktop/下载管理.webp", alt: "SollinPlayer 桌面端下载管理", caption: "下载管理" },
+        { src: "/demo/desktop/歌单广场.webp", alt: "SollinPlayer 桌面端歌单广场", caption: "歌单广场" },
+      ]}
+    />
+  </section>
+
+  <section class="demo-group-card">
+    <h3>桌面歌词与高度自定义</h3>
+    <DemoCarousel
+      id="desktop-customize-carousel"
+      variant="desktop"
+      slides={[
+        { src: "/demo/desktop/多样化设置.webp", alt: "SollinPlayer 桌面端多样化设置", caption: "多样化设置" },
+        { src: "/demo/desktop/播放界面高度自定义.webp", alt: "SollinPlayer 桌面端播放界面高度自定义", caption: "播放界面高度自定义" },
+        { src: "/demo/desktop/桌面歌词.webp", alt: "SollinPlayer 桌面端桌面歌词", caption: "桌面歌词" },
+        { src: "/demo/desktop/桌面歌词高度自定义.webp", alt: "SollinPlayer 桌面端桌面歌词高度自定义", caption: "桌面歌词高度自定义" },
+        { src: "/demo/desktop/迷你播放界面.webp", alt: "SollinPlayer 桌面端迷你播放界面", caption: "迷你播放界面" },
+      ]}
+    />
+  </section>
+</div>
+
+## 补充说明
+
+- 页面截图均来自当前提供的官方演示素材。
+- 如需补充视频演示，可在本页继续加入录屏入口或平台下载按钮。
