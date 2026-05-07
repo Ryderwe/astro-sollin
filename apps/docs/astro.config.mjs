@@ -9,8 +9,8 @@ export default defineConfig({
     starlight({
       title: "SollinPlayer",
       logo: {
-        dark: "./src/assets/ion-logo.svg",
-        light: "./src/assets/ion-logo-light.svg",
+        dark: "./src/assets/logo (1).png",
+        light: "./src/assets/logo (1).png",
       },
       social: [
         {
