@@ -55,6 +55,9 @@ export default defineConfig({
         "@fontsource/space-mono/700.css",
         "./src/styles/global.css",
       ],
+      components: {
+        Head: "./src/components/Head.astro",
+      },
       lastUpdated: true,
       pagination: false,
       plugins: [

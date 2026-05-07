@@ -1,0 +1,11 @@
+---
+const { head } = Astro.locals.starlightRoute;
+---
+
+{head.map(({ tag: Tag, attrs, content }) => <Tag {...attrs} set:html={content} />)}
+
+<script
+  defer
+  src="https://cloud.umami.is/script.js"
+  data-website-id="33bf0d13-0b5c-40af-bdd8-d237a3a6db6f"
+></script>
