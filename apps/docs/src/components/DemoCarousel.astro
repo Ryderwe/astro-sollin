@@ -12,6 +12,8 @@ interface Props {
 }
 
 const { id, slides, variant = "desktop" } = Astro.props;
+const withBase = (src: string) =>
+  src.startsWith("/") ? `${import.meta.env.BASE_URL}${src.slice(1)}` : src;
 ---
 
 <section class={`demo-carousel demo-carousel-${variant}`} data-carousel id={id}>
@@ -27,12 +29,12 @@ const { id, slides, variant = "desktop" } = Astro.props;
             class="demo-carousel-image-button"
             type="button"
             data-carousel-open
-            data-src={slide.src}
+            data-src={withBase(slide.src)}
             data-alt={slide.alt}
             data-caption={slide.caption}
             aria-label={`查看大图：${slide.caption}`}
           >
-            <img src={slide.src} alt={slide.alt} loading="lazy" />
+            <img src={withBase(slide.src)} alt={slide.alt} loading="lazy" />
           </button>
           <figcaption>{slide.caption}</figcaption>
         </figure>

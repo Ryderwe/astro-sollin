@@ -1,0 +1,21 @@
+---
+const base = import.meta.env.BASE_URL;
+---
+
+<div class="home-preview-grid">
+  <a class="home-preview-card" href={`${base}demo/#mobile-showcase`}>
+    <img src={`${base}demo/mobile/在线界面.webp`} alt="SollinPlayer 移动端在线界面预览" loading="lazy" />
+    <strong>移动端界面</strong>
+    <span>查看在线播放、资料库、播放界面与多样化设置。</span>
+  </a>
+  <a class="home-preview-card" href={`${base}demo/#desktop-showcase`}>
+    <img src={`${base}demo/desktop/首页.webp`} alt="SollinPlayer 桌面端首页预览" loading="lazy" />
+    <strong>桌面端工作流</strong>
+    <span>查看首页、搜索、下载管理、桌面歌词与高度自定义。</span>
+  </a>
+  <a class="home-preview-card" href={`${base}disclaimer/`}>
+    <img src={`${base}demo/mobile/听歌统计.webp`} alt="SollinPlayer 说明信息预览" loading="lazy" />
+    <strong>免责声明与说明</strong>
+    <span>查看内容来源声明、软件性质界定与用户使用责任。</span>
+  </a>
+</div>
