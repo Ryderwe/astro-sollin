@@ -73,11 +73,19 @@ export default defineConfig({
                 text: "手机端更新",
                 href: "https://sollinplayer.com/changelog-mobile/",
               },
+              {
+                text: "免责声明",
+                href: "https://sollinplayer.com/disclaimer/",
+              },
+              {
+                text: "博客：月明星稀",
+                href: "https://www.ymxx.net",
+              },
             ],
             icons: [
               {
                 name: "github",
-                href: "https://github.com",
+                href: "https://www.ymxx.net",
               },
             ],
           },

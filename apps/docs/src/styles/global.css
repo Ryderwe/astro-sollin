@@ -21,10 +21,7 @@ starlight-file-tree {
   margin: 1.5rem 0 2rem;
 }
 
-.demo-jump-card h3,
-.demo-card figcaption,
-.demo-wide-card figcaption,
-.demo-phone-shot figcaption {
+.demo-jump-card h3 {
   margin: 0;
 }
 
@@ -94,6 +91,45 @@ starlight-file-tree {
 .demo-group-card > h3 {
   margin: 0 0 0.85rem;
   font-size: 1.05rem;
+}
+
+.home-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 1rem;
+  margin: 1.25rem 0 2rem;
+}
+
+.home-preview-card {
+  display: grid;
+  gap: 0.65rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1.2rem;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.03);
+  color: inherit;
+  text-decoration: none;
+}
+
+.home-preview-card img {
+  width: 100%;
+  height: 12rem;
+  object-fit: cover;
+  display: block;
+}
+
+.home-preview-card strong,
+.home-preview-card span {
+  padding-inline: 1rem;
+}
+
+.home-preview-card strong {
+  padding-top: 0.25rem;
+}
+
+.home-preview-card span {
+  padding-bottom: 1rem;
+  color: var(--sl-color-gray-2);
 }
 
 .demo-carousel {
@@ -295,6 +331,30 @@ starlight-file-tree {
   cursor: pointer;
 }
 
+.demo-lightbox-nav {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  width: 3rem;
+  height: 3rem;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-size: 2rem;
+  line-height: 1;
+  transform: translateY(-50%);
+  cursor: pointer;
+}
+
+.demo-lightbox-nav.prev {
+  left: -0.75rem;
+}
+
+.demo-lightbox-nav.next {
+  right: -0.75rem;
+}
+
 @media (max-width: 900px) {
   .demo-highlight-grid {
     grid-template-columns: 1fr;
@@ -346,17 +406,34 @@ starlight-file-tree {
   .demo-lightbox-image {
     max-height: calc(100vh - 7rem);
   }
+
+  .demo-lightbox-nav {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 1.6rem;
+  }
+
+  .demo-lightbox-nav.prev {
+    left: 0;
+  }
+
+  .demo-lightbox-nav.next {
+    right: 0;
+  }
 }
 
 #starlight__on-this-page {
-  color: transparent !important;
   position: relative;
+  text-indent: -9999px;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 #starlight__on-this-page::after {
   content: "目录";
   position: absolute;
   inset: 0 auto auto 0;
+  text-indent: 0;
   color: var(--sl-color-white);
   font-family: "Space Mono", monospace;
   font-size: var(--sl-text-md);
@@ -364,11 +441,12 @@ starlight-file-tree {
 }
 
 #starlight__on-this-page--mobile .toggle {
-  color: transparent !important;
-  position: relative;
+  font-size: 0;
+  color: transparent;
 }
 
 #starlight__on-this-page--mobile .toggle::before {
   content: "目录";
+  font-size: var(--sl-text-xs);
   color: var(--sl-color-white);
 }

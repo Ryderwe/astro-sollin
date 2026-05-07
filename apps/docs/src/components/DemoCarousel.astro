@@ -78,6 +78,8 @@ const { id, slides, variant = "desktop" } = Astro.props;
     lightbox.innerHTML = `
       <div class="demo-lightbox-backdrop" data-lightbox-close></div>
       <div class="demo-lightbox-dialog" role="dialog" aria-modal="true" aria-label="图片预览">
+        <button class="demo-lightbox-nav prev" type="button" data-lightbox-prev aria-label="上一张">‹</button>
+        <button class="demo-lightbox-nav next" type="button" data-lightbox-next aria-label="下一张">›</button>
         <button class="demo-lightbox-close" type="button" data-lightbox-close aria-label="关闭预览">×</button>
         <img class="demo-lightbox-image" data-lightbox-image alt="" />
         <p class="demo-lightbox-caption" data-lightbox-caption></p>
@@ -113,9 +115,27 @@ const { id, slides, variant = "desktop" } = Astro.props;
     const next = carousel.querySelector("[data-carousel-next]");
     const current = carousel.querySelector("[data-carousel-current]");
     const openButtons = Array.from(carousel.querySelectorAll("[data-carousel-open]"));
+    const slideData = openButtons.map((button) => ({
+      src: button.dataset.src || "",
+      alt: button.dataset.alt || "",
+      caption: button.dataset.caption || "",
+    }));
     const lightbox = ensureLightbox();
+    const lightboxImage = lightbox.querySelector("[data-lightbox-image]");
+    const lightboxCaption = lightbox.querySelector("[data-lightbox-caption]");
+    const lightboxPrev = lightbox.querySelector("[data-lightbox-prev]");
+    const lightboxNext = lightbox.querySelector("[data-lightbox-next]");
 
     let index = 0;
+    let lightboxIndex = 0;
+
+    const renderLightbox = () => {
+      const slide = slideData[lightboxIndex];
+      if (!slide) return;
+      lightboxImage.setAttribute("src", slide.src || "");
+      lightboxImage.setAttribute("alt", slide.alt || "");
+      lightboxCaption.textContent = slide.caption || "";
+    };
 
     const updatePosition = () => {
       const activeSlide = slides[index];
@@ -158,17 +178,41 @@ const { id, slides, variant = "desktop" } = Astro.props;
 
     openButtons.forEach((button) => {
       button.addEventListener("click", () => {
-        const image = lightbox.querySelector("[data-lightbox-image]");
-        const caption = lightbox.querySelector("[data-lightbox-caption]");
-        image.setAttribute("src", button.dataset.src || "");
-        image.setAttribute("alt", button.dataset.alt || "");
-        caption.textContent = button.dataset.caption || "";
+        lightboxIndex = Number(button.closest("[data-carousel-slide]")?.getAttribute("data-slide-index") || 0);
+        renderLightbox();
         lightbox.removeAttribute("hidden");
         document.body.classList.add("demo-lightbox-open");
       });
     });
 
+    slides.forEach((slide, slideIndex) => {
+      slide.setAttribute("data-slide-index", String(slideIndex));
+    });
+
+    lightboxPrev.onclick = () => {
+      lightboxIndex = lightboxIndex === 0 ? slides.length - 1 : lightboxIndex - 1;
+      renderLightbox();
+    };
+
+    lightboxNext.onclick = () => {
+      lightboxIndex = lightboxIndex === slides.length - 1 ? 0 : lightboxIndex + 1;
+      renderLightbox();
+    };
+
     window.addEventListener("resize", updatePosition, { passive: true });
+
+    const onKeydown = (event) => {
+      if (lightbox.hasAttribute("hidden")) return;
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        lightboxPrev.click();
+      }
+      if (event.key === "ArrowRight") {
+        event.preventDefault();
+        lightboxNext.click();
+      }
+    };
+    document.addEventListener("keydown", onKeydown);
 
     render();
   };
