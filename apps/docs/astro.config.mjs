@@ -2,9 +2,17 @@ import starlight from "@astrojs/starlight";
 import { defineConfig } from "astro/config";
 import { ion } from "starlight-ion-theme";
 
+const deployTarget = process.env.PUBLIC_DEPLOY_TARGET;
+const isGitHubPages = deployTarget === "github-pages";
+const repository = process.env.GITHUB_REPOSITORY?.split("/")[1] || "astro-sollin";
+const repositoryOwner = process.env.GITHUB_REPOSITORY?.split("/")[0] || "Ryderwe";
+const githubPagesBase = `/${repository}`;
+const githubPagesSite = `https://${repositoryOwner.toLowerCase()}.github.io${githubPagesBase}`;
+
 // https://astro.build/config
 export default defineConfig({
-  site: "https://sollinplayer.com",
+  site: isGitHubPages ? githubPagesSite : "https://sollinplayer.com",
+  base: isGitHubPages ? githubPagesBase : "/",
   integrations: [
     starlight({
       title: "SollinPlayer",
