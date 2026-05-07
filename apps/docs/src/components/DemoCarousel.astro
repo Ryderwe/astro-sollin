@@ -117,8 +117,17 @@ const { id, slides, variant = "desktop" } = Astro.props;
 
     let index = 0;
 
+    const updatePosition = () => {
+      const activeSlide = slides[index];
+      if (!activeSlide) return;
+      const frameWidth = carousel.querySelector(".demo-carousel-frame")?.clientWidth || 0;
+      const slideOffset = activeSlide.offsetLeft;
+      const slideWidth = activeSlide.clientWidth;
+      const target = slideOffset - (frameWidth - slideWidth) / 2;
+      track.style.transform = `translateX(-${Math.max(target, 0)}px)`;
+    };
+
     const render = () => {
-      track.style.transform = `translateX(calc(${12 - index * 76}% - ${index * 0.75}rem))`;
       slides.forEach((slide, slideIndex) => {
         slide.setAttribute("aria-hidden", slideIndex === index ? "false" : "true");
       });
@@ -127,6 +136,7 @@ const { id, slides, variant = "desktop" } = Astro.props;
         dot.setAttribute("aria-selected", dotIndex === index ? "true" : "false");
       });
       current.textContent = String(index + 1);
+      updatePosition();
     };
 
     prev?.addEventListener("click", () => {
@@ -157,6 +167,8 @@ const { id, slides, variant = "desktop" } = Astro.props;
         document.body.classList.add("demo-lightbox-open");
       });
     });
+
+    window.addEventListener("resize", updatePosition, { passive: true });
 
     render();
   };

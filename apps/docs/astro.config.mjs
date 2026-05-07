@@ -15,8 +15,8 @@ export default defineConfig({
       social: [
         {
           icon: "github",
-          label: "GitHub",
-          href: "https://github.com/louisescher/starlight-ion-theme",
+          label: "月明星稀",
+          href: "https://www.ymxx.net",
         },
       ],
       sidebar: [
@@ -43,6 +43,10 @@ export default defineConfig({
         {
           label: "[lucide:monitor] 电脑端更新日志",
           link: "/changelog-desktop/",
+        },
+        {
+          label: "[lucide:shield-alert] 免责声明",
+          link: "/disclaimer/",
         },
       ],
       customCss: [

@@ -347,3 +347,28 @@ starlight-file-tree {
     max-height: calc(100vh - 7rem);
   }
 }
+
+#starlight__on-this-page {
+  color: transparent !important;
+  position: relative;
+}
+
+#starlight__on-this-page::after {
+  content: "目录";
+  position: absolute;
+  inset: 0 auto auto 0;
+  color: var(--sl-color-white);
+  font-family: "Space Mono", monospace;
+  font-size: var(--sl-text-md);
+  font-weight: 400;
+}
+
+#starlight__on-this-page--mobile .toggle {
+  color: transparent !important;
+  position: relative;
+}
+
+#starlight__on-this-page--mobile .toggle::before {
+  content: "目录";
+  color: var(--sl-color-white);
+}
