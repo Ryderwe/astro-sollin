@@ -1,0 +1,170 @@
+---
+interface Slide {
+  src: string;
+  alt: string;
+  caption: string;
+}
+
+interface Props {
+  id: string;
+  slides: Slide[];
+  variant?: "mobile" | "desktop";
+}
+
+const { id, slides, variant = "desktop" } = Astro.props;
+---
+
+<section class={`demo-carousel demo-carousel-${variant}`} data-carousel id={id}>
+  <div class="demo-carousel-frame">
+    <div class="demo-carousel-track" data-carousel-track>
+      {slides.map((slide, index) => (
+        <figure
+          class="demo-carousel-slide"
+          data-carousel-slide
+          aria-hidden={index === 0 ? "false" : "true"}
+        >
+          <button
+            class="demo-carousel-image-button"
+            type="button"
+            data-carousel-open
+            data-src={slide.src}
+            data-alt={slide.alt}
+            data-caption={slide.caption}
+            aria-label={`查看大图：${slide.caption}`}
+          >
+            <img src={slide.src} alt={slide.alt} loading="lazy" />
+          </button>
+          <figcaption>{slide.caption}</figcaption>
+        </figure>
+      ))}
+    </div>
+    <button class="demo-carousel-button prev" type="button" data-carousel-prev aria-label="上一张">
+      ‹
+    </button>
+    <button class="demo-carousel-button next" type="button" data-carousel-next aria-label="下一张">
+      ›
+    </button>
+  </div>
+  <div class="demo-carousel-footer">
+    <div class="demo-carousel-dots" role="tablist" aria-label="截图切换">
+      {slides.map((slide, index) => (
+        <button
+          class:list={["demo-carousel-dot", index === 0 && "is-active"]}
+          type="button"
+          data-carousel-dot
+          data-index={index}
+          aria-label={`查看 ${slide.caption}`}
+          aria-selected={index === 0 ? "true" : "false"}
+        />
+      ))}
+    </div>
+    <p class="demo-carousel-count">
+      <span data-carousel-current>1</span>
+      <span>/</span>
+      <span>{slides.length}</span>
+    </p>
+  </div>
+</section>
+
+<script>
+  const ensureLightbox = () => {
+    let lightbox = document.querySelector("[data-demo-lightbox]");
+    if (lightbox) return lightbox;
+
+    lightbox = document.createElement("div");
+    lightbox.className = "demo-lightbox";
+    lightbox.setAttribute("data-demo-lightbox", "");
+    lightbox.setAttribute("hidden", "");
+    lightbox.innerHTML = `
+      <div class="demo-lightbox-backdrop" data-lightbox-close></div>
+      <div class="demo-lightbox-dialog" role="dialog" aria-modal="true" aria-label="图片预览">
+        <button class="demo-lightbox-close" type="button" data-lightbox-close aria-label="关闭预览">×</button>
+        <img class="demo-lightbox-image" data-lightbox-image alt="" />
+        <p class="demo-lightbox-caption" data-lightbox-caption></p>
+      </div>
+    `;
+    document.body.appendChild(lightbox);
+
+    const close = () => {
+      lightbox.setAttribute("hidden", "");
+      document.body.classList.remove("demo-lightbox-open");
+    };
+
+    lightbox.querySelectorAll("[data-lightbox-close]").forEach((node) => {
+      node.addEventListener("click", close);
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !lightbox.hasAttribute("hidden")) close();
+    });
+
+    lightbox.closeLightbox = close;
+    return lightbox;
+  };
+
+  const setupCarousel = (carousel) => {
+    if (carousel.dataset.ready === "true") return;
+    carousel.dataset.ready = "true";
+
+    const track = carousel.querySelector("[data-carousel-track]");
+    const slides = Array.from(carousel.querySelectorAll("[data-carousel-slide]"));
+    const dots = Array.from(carousel.querySelectorAll("[data-carousel-dot]"));
+    const prev = carousel.querySelector("[data-carousel-prev]");
+    const next = carousel.querySelector("[data-carousel-next]");
+    const current = carousel.querySelector("[data-carousel-current]");
+    const openButtons = Array.from(carousel.querySelectorAll("[data-carousel-open]"));
+    const lightbox = ensureLightbox();
+
+    let index = 0;
+
+    const render = () => {
+      track.style.transform = `translateX(calc(${12 - index * 76}% - ${index * 0.75}rem))`;
+      slides.forEach((slide, slideIndex) => {
+        slide.setAttribute("aria-hidden", slideIndex === index ? "false" : "true");
+      });
+      dots.forEach((dot, dotIndex) => {
+        dot.classList.toggle("is-active", dotIndex === index);
+        dot.setAttribute("aria-selected", dotIndex === index ? "true" : "false");
+      });
+      current.textContent = String(index + 1);
+    };
+
+    prev?.addEventListener("click", () => {
+      index = index === 0 ? slides.length - 1 : index - 1;
+      render();
+    });
+
+    next?.addEventListener("click", () => {
+      index = index === slides.length - 1 ? 0 : index + 1;
+      render();
+    });
+
+    dots.forEach((dot, dotIndex) => {
+      dot.addEventListener("click", () => {
+        index = dotIndex;
+        render();
+      });
+    });
+
+    openButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        const image = lightbox.querySelector("[data-lightbox-image]");
+        const caption = lightbox.querySelector("[data-lightbox-caption]");
+        image.setAttribute("src", button.dataset.src || "");
+        image.setAttribute("alt", button.dataset.alt || "");
+        caption.textContent = button.dataset.caption || "";
+        lightbox.removeAttribute("hidden");
+        document.body.classList.add("demo-lightbox-open");
+      });
+    });
+
+    render();
+  };
+
+  const initCarousels = () => {
+    document.querySelectorAll("[data-carousel]").forEach(setupCarousel);
+  };
+
+  initCarousels();
+  document.addEventListener("astro:page-load", initCarousels);
+</script>
