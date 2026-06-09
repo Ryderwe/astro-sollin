@@ -450,3 +450,54 @@ starlight-file-tree {
   font-size: var(--sl-text-xs);
   color: var(--sl-color-white);
 }
+
+.announcement-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+  background: color-mix(in srgb, var(--sl-color-black) 92%, var(--sl-color-accent) 8%);
+  color: var(--sl-color-white);
+  padding: 0.95rem 1rem;
+  border: 1px solid var(--sl-border);
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.06);
+}
+
+.announcement-banner a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  padding: 0.35rem 0.8rem;
+  border: 1px solid color-mix(in srgb, var(--sl-color-accent) 35%, var(--sl-border));
+  border-radius: 6px;
+  background: var(--sl-color-accent);
+  color: #fff;
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.15s ease;
+}
+
+.announcement-banner a:hover {
+  background: color-mix(in srgb, var(--sl-color-accent) 84%, #000);
+  border-color: color-mix(in srgb, var(--sl-color-accent) 84%, #000);
+  color: #fff !important;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 36rem) {
+  .announcement-banner {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

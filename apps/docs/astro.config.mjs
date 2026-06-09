@@ -23,8 +23,8 @@ export default defineConfig({
       social: [
         {
           icon: "github",
-          label: "月明星稀",
-          href: "https://www.ymxx.net",
+          label: "GitHub 仓库",
+          href: "https://github.com/Ryderwe/Sollin-Music-Desktop",
         },
       ],
       sidebar: [
@@ -78,7 +78,7 @@ export default defineConfig({
             links: [
               {
                 text: "下载地址",
-                href: "https://pan.ymxx.net/s/oakh9",
+                href: "https://sollinplayer.com/download/",
               },
               {
                 text: "手机端更新",
@@ -96,7 +96,7 @@ export default defineConfig({
             icons: [
               {
                 name: "github",
-                href: "https://www.ymxx.net",
+                href: "https://github.com/Ryderwe/Sollin-Music-Desktop",
               },
             ],
           },
