@@ -90,7 +90,7 @@ export default defineConfig({
               },
               {
                 text: "博客：月明星稀",
-                href: "https://www.ymxx.net",
+                href: "https://blog.leguans.cn",
               },
             ],
             icons: [
