@@ -1,8 +1,50 @@
 ---
 const { head } = Astro.locals.starlightRoute;
+const v2Href = JSON.stringify(import.meta.env.BASE_URL + "v2/");
+const v2ModalScript = `
+(function () {
+  var KEY = 'sollin_v2_launch_shown_v1';
+  try { if (localStorage.getItem(KEY)) return; } catch (e) {}
+  var v2Href = ${v2Href};
+  function show() {
+    if (document.querySelector('.v2-modal-backdrop')) return;
+    var el = document.createElement('div');
+    el.className = 'v2-modal-backdrop';
+    el.innerHTML =
+      '<div class="v2-modal" role="dialog" aria-modal="true" aria-label="SollinPlayer v2 发布">' +
+      '<button class="v2-modal-close" type="button" data-close aria-label="关闭">×</button>' +
+      '<span class="v2-badge"><span class="v2-pulse-dot"></span>全新版本</span>' +
+      '<h3>SollinPlayer 移动端 v2 发布</h3>' +
+      '<p>全新视觉重构、高级动态效果与自适应布局，Android 与 iOS 同步上线，v1 数据可平滑互通。</p>' +
+      '<div class="v2-modal-actions">' +
+      '<a class="v2-btn v2-btn-primary" href="' + v2Href + '">立即体验 v2</a>' +
+      '<button class="v2-modal-dismiss" type="button" data-dismiss>不再提示</button>' +
+      '</div></div>';
+    document.body.appendChild(el);
+    var close = function (persist) {
+      try { if (persist) localStorage.setItem(KEY, '1'); } catch (e) {}
+      el.remove();
+      document.body.style.overflow = '';
+    };
+    el.querySelector('[data-close]').addEventListener('click', function () { close(false); });
+    el.querySelector('[data-dismiss]').addEventListener('click', function () { close(true); });
+    el.querySelector('.v2-modal .v2-btn-primary').addEventListener('click', function () { close(true); });
+    el.addEventListener('click', function (e) { if (e.target === el) close(false); });
+    var onKey = function (e) {
+      if (e.key === 'Escape') { close(false); document.removeEventListener('keydown', onKey); }
+    };
+    document.addEventListener('keydown', onKey);
+  }
+  var start = function () { setTimeout(show, 600); };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+  else start();
+})();
+`;
 ---
 
 {head.map(({ tag: Tag, attrs, content }) => <Tag {...attrs} set:html={content} />)}
+
+<script is:inline set:text={v2ModalScript}></script>
 
 <script
   defer

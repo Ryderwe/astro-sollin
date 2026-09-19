@@ -1,0 +1,106 @@
+---
+title: SollinPlayer v2
+description: SollinPlayer 移动端全新 v2（2.0.0+38）正式发布 —— 全新视觉、EQ 均衡器、动态封面、歌词增强与自适应布局，Android 与 iOS 同步上线。
+tableOfContents: false
+---
+
+import DemoCarousel from "../../components/DemoCarousel.astro";
+import V2Reveal from "../../components/V2Reveal.astro";
+
+<section class="v2-hero">
+  <div class="v2-hero-inner">
+    <div>
+      <span class="v2-badge"><span class="v2-pulse-dot"></span>v2.0.0+38 · 现已发布</span>
+      <h1 class="v2-title">SollinPlayer v2</h1>
+      <p class="v2-tagline">
+        移动端一次彻底的重构。全新视觉语言、更细腻的高级动态效果，以及随屏幕自动适配的响应式布局 ——
+        手机、平板、折叠屏都有恰到好处的观感。v1 数据可平滑互通，升级无负担。
+      </p>
+      <div class="v2-cta-row">
+        <a class="v2-btn v2-btn-primary" href="https://share.feijipan.com/s/Wi9oe7OB">立即下载 v2</a>
+        <a class="v2-btn v2-btn-ghost" href="#v2-showcase">查看界面演示</a>
+      </div>
+    </div>
+    <div class="v2-phone-wrap">
+      <div class="v2-phone">
+        <img src="/demo/mobile/v2/播放界面.webp" alt="SollinPlayer v2 播放界面预览" loading="eager" />
+      </div>
+    </div>
+  </div>
+</section>
+
+## 全新升级，重点维护
+
+v2 是 SollinPlayer 移动端的全新一代，当前版本 **2.0.0+38**。后续功能迭代、问题修复与体验优化将**以 v2 为主**。v1 仍可正常使用，老版本数据通过云备份与 v2 互通，可随时平滑迁移。
+
+<section class="v2-feature-grid">
+  <div class="v2-feature v2-reveal">
+    <span class="v2-feat-icon">✨</span>
+    <h3>全新视觉重构</h3>
+    <p>整体界面重新设计，更现代的版式、层次与配色，信息一目了然。</p>
+  </div>
+  <div class="v2-feature v2-reveal">
+    <span class="v2-feat-icon">🌊</span>
+    <h3>高级动态效果</h3>
+    <p>细腻的过渡、微动效与视觉反馈，让每一次操作都顺滑跟手。</p>
+  </div>
+  <div class="v2-feature v2-reveal">
+    <span class="v2-feat-icon">📐</span>
+    <h3>自适应布局</h3>
+    <p>随屏幕宽度自动重排，手机、平板、折叠屏都有合适的布局与边距。</p>
+  </div>
+  <div class="v2-feature v2-reveal">
+    <span class="v2-feat-icon">🔄</span>
+    <h3>v1 / v2 数据互通</h3>
+    <p>通过云备份实现两代数据互通，歌单、收藏与设置可平滑迁移。</p>
+  </div>
+  <div class="v2-feature v2-reveal">
+    <span class="v2-feat-icon">📱</span>
+    <h3>双端同步</h3>
+    <p>Android 与 iOS 同步发布，一致的体验与一致的功能节奏。</p>
+  </div>
+  <div class="v2-feature v2-reveal">
+    <span class="v2-feat-icon">🛠️</span>
+    <h3>持续重点维护</h3>
+    <p>后续版本将以 v2 为核心持续迭代，优先接收新功能与问题修复。</p>
+  </div>
+</section>
+
+<div id="v2-showcase"></div>
+## 界面演示
+
+<section class="v2-reveal">
+  <DemoCarousel
+    id="v2-showcase-carousel"
+    variant="mobile"
+    slides={[
+      { src: "/demo/mobile/v2/发现页.webp", alt: "SollinPlayer v2 发现页", caption: "发现页" },
+      { src: "/demo/mobile/v2/播放界面.webp", alt: "SollinPlayer v2 播放界面", caption: "播放界面" },
+      { src: "/demo/mobile/v2/外观与界面.webp", alt: "SollinPlayer v2 外观与界面设置", caption: "外观与界面" },
+    ]}
+  />
+</section>
+
+## v2.0.0+38 更新要点
+
+- 新增 EQ 均衡器：10 频段可拖曲线调音，内置 5 种预设，支持保存自定义预设。
+- 新增动态歌曲封面：在线歌曲优先匹配网易云动态封面。
+- 「本地」独立为一级页面，新增 iOS 扫描已下载歌曲，扫描入口集中管理。
+- 歌词解析增强：TTML 逐字高亮、背景人声独立成行，本地歌词自动识别编码。
+- 新增「播放解析链路」查看，播放问题一目了然。
+- 新增封面下载尺寸与下载命名方式设置。
+- 新增「启动进入播放界面」，可直接进播放页开始听歌。
+- 横屏 / 平板改用左侧菜单布局，迷你播放器常驻菜单区。
+- 修复播放界面布局、悬浮球初始位置、随机播放「添加下一首」等问题。
+
+<section class="v2-download v2-reveal">
+  <h2>下载全新 v2</h2>
+  <p>当前版本 2.0.0+38，Android 与 iOS 同步发布。iOS 用户如无法直接安装，可参考下方自签教程。</p>
+  <div class="v2-download-row">
+    <a class="v2-btn v2-btn-primary" href="https://share.feijipan.com/s/Wi9oe7OB">Android 下载</a>
+    <a class="v2-btn v2-btn-primary" href="https://share.feijipan.com/s/Wi9oe7OB">iOS 下载</a>
+    <a class="v2-btn v2-btn-ghost" href="https://blog.leguans.cn/posts/LiveContainer">iOS 自签教程</a>
+  </div>
+</section>
+
+<V2Reveal />

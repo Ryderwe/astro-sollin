@@ -33,6 +33,10 @@ export default defineConfig({
           link: "/",
         },
         {
+          label: "[lucide:sparkles] 全新 v2",
+          link: "/v2/",
+        },
+        {
           label: "[lucide:download] 下载地址",
           link: "/download/",
         },
@@ -62,6 +66,7 @@ export default defineConfig({
         "@fontsource/space-mono/400.css",
         "@fontsource/space-mono/700.css",
         "./src/styles/global.css",
+        "./src/styles/v2.css",
       ],
       components: {
         Head: "./src/components/Head.astro",
