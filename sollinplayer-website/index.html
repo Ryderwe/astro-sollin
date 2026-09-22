@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SollinPlayer — 一个全能的音乐播放器 | 全平台免费下载</title>
+  <meta name="description" content="SollinPlayer 是一个全能的音乐播放器：多音源智能换源、逐字歌词、EQ 均衡器、本地资料库、WebDAV 云备份，支持 Android、iOS、鸿蒙、Windows、macOS。" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23F5A14D'/%3E%3Cstop offset='1' stop-color='%23E85C80'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='15' fill='url(%23g)'/%3E%3Cpath d='M28 46V16l18-4v7l-18 4z' fill='white'/%3E%3Crect x='38.6' y='19' width='3.4' height='17.5' fill='white'/%3E%3Cellipse cx='22' cy='46' rx='7.2' ry='5.4' fill='white'/%3E%3Cellipse cx='40.3' cy='36.5' rx='7.2' ry='5.4' fill='white'/%3E%3C/svg%3E" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            cream: '#FAF6F0',
+            creamdeep: '#F4EDE4',
+            ink: '#241D19',
+            brand: { 50:'#FEF3EE', 100:'#FDE6DD', 200:'#FBCFC2', 400:'#F0815F', 500:'#E85C76', 600:'#D94C68', 700:'#BE3B56' },
+            apricot: '#F2994A',
+            clay: '#C06A4F'
+          },
+          fontFamily: {
+            serif: ['Lora', '"Noto Serif SC"', 'Songti SC', 'serif'],
+            sans: ['"Noto Sans SC"', '"PingFang SC"', 'system-ui', 'sans-serif'],
+            mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://miaoda.feishu.cn">
+  <link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Lora:ital,wght@0,500;0,600;1,500&family=Noto+Serif+SC:wght@500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap">
+  <style>
+    body { background-color:#FAF6F0; color:#241D19; }
+    .brand-gradient { background-image: linear-gradient(135deg, #F5A14D 0%, #EF7068 52%, #E85C80 100%); }
+    .brand-text { background-image: linear-gradient(120deg, #E8903C 0%, #DD4E72 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .soft-ring { box-shadow: 0 0 0 1px rgba(36,29,25,.06), 0 18px 50px -18px rgba(120,60,40,.28); }
+    .thumb-rail { scrollbar-width: thin; scrollbar-color: #D9C9BC transparent; }
+    .thumb-rail::-webkit-scrollbar { height: 6px; }
+    .thumb-rail::-webkit-scrollbar-thumb { background: #D9C9BC; border-radius: 99px; }
+    .thumb-rail::-webkit-scrollbar-track { background: transparent; }
+    .reveal { opacity: 0; transform: translateY(22px); transition: opacity .7s ease, transform .7s ease; }
+    .reveal.in { opacity: 1; transform: none; }
+    @media (prefers-reduced-motion: reduce) { .reveal { opacity:1; transform:none; transition:none; } html { scroll-behavior:auto; } }
+    .faq-body { display:grid; grid-template-rows: 0fr; transition: grid-template-rows .3s ease; }
+    details[open] .faq-body { grid-template-rows: 1fr; }
+    details[open] .faq-plus { transform: rotate(45deg); }
+    .faq-plus { transition: transform .3s ease; }
+    .pulse-dot { position: relative; }
+    .pulse-dot::after { content:''; position:absolute; inset:-4px; border-radius:9999px; background: currentColor; opacity:.35; animation: pulsering 1.8s ease-out infinite; }
+    @keyframes pulsering { 0%{transform:scale(.6);opacity:.45} 70%{transform:scale(1.6);opacity:0} 100%{opacity:0} }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased selection:bg-brand-500 selection:text-white">
+
+  <!-- ===== 顶部导航 ===== -->
+  <header class="w-full border-b border-stone-200/80 sticky top-0 z-50 bg-cream/90 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-5 sm:px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-9">
+        <a href="#top" class="flex items-center gap-2.5">
+          <span class="w-9 h-9 rounded-xl bg-white border border-stone-200/80 shadow-sm flex items-center justify-center p-1">
+            <img src="assets/logo.png" alt="SollinPlayer Logo" class="w-full h-full object-contain" />
+          </span>
+          <span class="font-serif text-xl font-semibold tracking-tight">SollinPlayer</span>
+        </a>
+        <nav class="hidden lg:flex items-center gap-7 text-sm text-stone-600 font-medium">
+          <a href="#preview" class="hover:text-ink transition-colors">界面演示</a>
+          <a href="#features" class="hover:text-ink transition-colors">核心功能</a>
+          <a href="#downloads" class="hover:text-ink transition-colors">客户端下载</a>
+          <a href="#changelog" class="hover:text-ink transition-colors">更新日志</a>
+          <a href="#faq" class="hover:text-ink transition-colors">常见问题</a>
+        </nav>
+      </div>
+      <div class="flex items-center gap-3">
+        <a href="#downloads" class="hidden sm:inline-flex brand-gradient text-white text-sm font-medium px-5 py-2 rounded-full hover:opacity-90 transition-opacity shadow-sm">
+          免费下载
+        </a>
+        <button id="nav-menu-btn" aria-label="打开菜单" class="lg:hidden w-10 h-10 rounded-full border border-stone-300 flex items-center justify-center">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+    <div id="nav-menu" class="hidden lg:hidden border-t border-stone-200/80 bg-cream px-6 py-3">
+      <a href="#preview" class="block py-2.5 text-sm text-stone-700">界面演示</a>
+      <a href="#features" class="block py-2.5 text-sm text-stone-700">核心功能</a>
+      <a href="#downloads" class="block py-2.5 text-sm text-stone-700">客户端下载</a>
+      <a href="#changelog" class="block py-2.5 text-sm text-stone-700">更新日志</a>
+      <a href="#faq" class="block py-2.5 text-sm text-stone-700">常见问题</a>
+    </div>
+  </header>
+
+  <main id="top" class="flex-1">
+
+    <!-- ===== Hero ===== -->
+    <section class="relative overflow-hidden">
+      <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
+        <div class="absolute -top-32 -right-24 w-[34rem] h-[34rem] rounded-full bg-gradient-to-br from-apricot/20 to-brand-500/10 blur-3xl"></div>
+        <div class="absolute top-40 -left-32 w-[28rem] h-[28rem] rounded-full bg-gradient-to-br from-brand-200/40 to-transparent blur-3xl"></div>
+      </div>
+      <div class="relative max-w-7xl mx-auto px-5 sm:px-6 pt-16 pb-14 md:pt-24 md:pb-20 text-center">
+        <div class="inline-flex items-center gap-2 border border-stone-200 bg-white/70 px-4 py-1.5 rounded-full text-xs sm:text-sm text-stone-600 mb-7">
+          <span class="pulse-dot w-2 h-2 rounded-full bg-brand-500 text-brand-500"></span>
+          <span>移动端全新 <strong class="text-ink font-semibold">v2.0.0+38</strong> 已发布 · Android / iOS / 鸿蒙同步上线</span>
+        </div>
+        <h1 class="font-serif text-[2.6rem] leading-[1.12] sm:text-6xl md:text-7xl font-semibold tracking-tight mb-7 max-w-4xl mx-auto">
+          一个全能的<br class="sm:hidden" /><span class="brand-text">音乐播放器</span>
+        </h1>
+        <p class="text-base sm:text-lg text-stone-600 leading-relaxed mb-9 max-w-2xl mx-auto">
+          汇聚多平台音源与智能换源，逐字歌词、EQ 调音、本地资料库、WebDAV 云备份一应俱全。手机、平板、电脑体验一致，五大平台全部覆盖。
+        </p>
+        <div class="flex flex-wrap items-center justify-center gap-3.5 mb-10">
+          <a href="#downloads" class="brand-gradient text-white px-8 py-3.5 rounded-full text-base font-medium hover:opacity-90 transition-opacity shadow-md shadow-brand-500/20">免费下载</a>
+          <a href="#preview" class="border border-stone-300 bg-white/60 text-ink px-8 py-3.5 rounded-full text-base font-medium hover:border-ink transition-colors">查看界面演示</a>
+        </div>
+        <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2.5 text-xs sm:text-sm text-stone-500">
+          <span class="inline-flex items-center gap-1.5"><svg class="w-4 h-4 text-brand-500" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 9.5 5.5 13l1.5 3.5h10L18.5 13 17 9.5M7 9.5h10M7 9.5 6 8m11 1.5 1-1.5M9 16.5v2m6-2v2"/></svg>Android</span>
+          <span class="inline-flex items-center gap-1.5"><svg class="w-4 h-4 text-brand-500" fill="currentColor" viewBox="0 0 24 24"><path d="M16.365 1.43c0 1.14-.46 2.2-1.22 2.96-.81.83-2.15 1.47-3.26 1.38-.14-1.1.48-2.27 1.18-3.02.8-.86 2.24-1.5 3.3-1.32zM20.5 17.3c-.6 1.36-.88 1.97-1.64 3.18-1.06 1.68-2.55 3.77-4.4 3.78-1.65.01-2.07-1.08-4.32-1.07-2.25.01-2.71 1.08-4.36 1.07-1.85-.01-3.27-1.92-4.33-3.6C-1.5 16.5-1.84 11.7 1.1 9.27c1.06-1.1 2.6-1.75 4.06-1.75 1.63 0 2.66 1.08 3.99 1.08 1.3 0 2.09-1.08 3.97-1.08 1.42 0 2.92.78 3.98 2.11-3.5 1.92-2.93 6.92 3.4 7.67z"/></svg>iPhone / iPad</span>
+          <span class="inline-flex items-center gap-1.5"><svg class="w-4 h-4 text-brand-500" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2.8 3.5 7.5 12 12.2l8.5-4.7L12 2.8zM3.5 12 12 16.7l8.5-4.7M3.5 16.5 12 21.2l8.5-4.7"/></svg>HarmonyOS 鸿蒙</span>
+          <span class="inline-flex items-center gap-1.5"><svg class="w-4 h-4 text-brand-500" fill="currentColor" viewBox="0 0 24 24"><path d="M3 5.5 10.5 4.5v7H3v-6zM11.5 4.35 21 3v8.5h-9.5V4.35zM3 12.5h7.5v7L3 18.5v-6zM11.5 12.5H21V21l-9.5-1.15v-7.35z"/></svg>Windows</span>
+          <span class="inline-flex items-center gap-1.5"><svg class="w-4 h-4 text-brand-500" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><rect x="2.5" y="4" width="19" height="12.5" rx="1.6"/><path stroke-linecap="round" d="M9 20h6M12 16.5V20"/></svg>macOS</span>
+          <span class="inline-flex items-center gap-1.5"><svg class="w-4 h-4 text-brand-500" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5v-3m0 0a5 5 0 1 0-5-5m5 5a5 5 0 0 1 5-5m-9 9h8"/></svg>v1 / v2 云备份互通</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 界面演示画廊 ===== -->
+    <section id="preview" class="max-w-6xl mx-auto px-5 sm:px-6 pb-20 md:pb-28">
+      <div class="text-center mb-9">
+        <span class="text-xs uppercase tracking-[0.18em] text-clay font-semibold">产品演示</span>
+        <h2 class="font-serif text-3xl sm:text-4xl font-semibold mt-2">真实界面截图，所见即所得</h2>
+      </div>
+      <div class="flex flex-col items-center gap-3 mb-9">
+        <div class="inline-flex p-1 bg-stone-200/70 rounded-full max-w-xs w-full">
+          <button data-ui="preview" data-kind="platform" data-value="desktop" class="tab-btn flex-1 px-5 py-2 rounded-full text-sm font-medium transition-all bg-white text-ink shadow-sm">电脑端</button>
+          <button data-ui="preview" data-kind="platform" data-value="mobile" class="tab-btn flex-1 px-5 py-2 rounded-full text-sm font-medium transition-all text-stone-600 hover:text-ink">移动端</button>
+        </div>
+        <div class="inline-flex p-1 bg-stone-200/70 rounded-full max-w-xs w-full">
+          <button data-ui="preview" data-kind="version" data-value="v2" class="tab-btn flex-1 px-5 py-2 rounded-full text-sm font-medium transition-all brand-gradient text-white shadow-sm">v2 全新版</button>
+          <button data-ui="preview" data-kind="version" data-value="v1" class="tab-btn flex-1 px-5 py-2 rounded-full text-sm font-medium transition-all text-stone-600 hover:text-ink">v1 经典版</button>
+        </div>
+      </div>
+
+      <!-- 桌面端 v1 画廊 -->
+      <div data-ui="preview" data-platform="desktop" data-version="v1" class="hidden">
+        <div class="rounded-2xl border border-stone-200 bg-white soft-ring overflow-hidden">
+          <div class="h-10 bg-stone-100/90 border-b border-stone-200 px-4 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-[#FF5F57]"></span>
+              <span class="w-3 h-3 rounded-full bg-[#FEBC2E]"></span>
+              <span class="w-3 h-3 rounded-full bg-[#28C840]"></span>
+            </div>
+            <span id="desktop-v1-caption" class="text-xs text-stone-500 font-mono">SollinPlayer Desktop v1 · 首页总览</span>
+            <span class="w-12"></span>
+          </div>
+          <div class="bg-gradient-to-b from-stone-50 to-white p-3 sm:p-6">
+            <img id="desktop-v1-main" src="assets/desktop/home.webp" alt="SollinPlayer 桌面端 v1 首页总览" class="w-full aspect-[16/10] object-cover object-top rounded-lg border border-stone-200" />
+          </div>
+        </div>
+        <p class="text-xs text-stone-400 mt-3 text-center">以下截图来自开源 v1（v1.3.x）；全新 v2 界面请切换至「v2 全新版」查看。</p>
+        <div class="thumb-rail mt-4 flex gap-3 overflow-x-auto pb-2" data-rail="1" data-main="#desktop-v1-main" data-caption="#desktop-v1-caption">
+          <button class="shot-thumb shrink-0 w-32 rounded-lg overflow-hidden border-2 border-brand-500 opacity-100 hover:opacity-100 transition bg-white" data-caption="SollinPlayer Desktop v1 · 首页总览"><img src="assets/desktop/home.webp" alt="SollinPlayer 桌面端 v1 首页总览" class="w-full h-16 object-cover object-top block"/><span class="block text-[10px] text-center py-1 text-stone-600 truncate px-1">首页总览</span></button>
+          <button class="shot-thumb shrink-0 w-32 rounded-lg overflow-hidden border-2 border-transparent opacity-70 hover:opacity-100 transition bg-white" data-caption="SollinPlayer Desktop v1 · 播放界面"><img src="assets/desktop/player.webp" alt="SollinPlayer 桌面端 v1 播放界面" class="w-full h-16 object-cover object-top block"/><span class="block text-[10px] text-center py-1 text-stone-600 truncate px-1">播放界面</span></button>
+          <button class="shot-thumb shrink-0 w-32 rounded-lg overflow-hidden border-2 border-transparent opacity-70 hover:opacity-100 transition bg-white" data-caption="SollinPlayer Desktop v1 · 资料库"><img src="assets/desktop/library.webp" alt="SollinPlayer 桌面端 v1 资料库" class="w-full h-16 object-cover object-top block"/><span class="block text-[10px] text-center py-1 text-stone-600 truncate px-1">资料库</span></button>
+          <button class="shot-thumb shrink-0 w-32 rounded-lg overflow-hidden border-2 border-transparent opacity-70 hover:opacity-100 transition bg-white" data-caption="SollinPlayer Desktop v1 · 本地音乐"><img src="assets/desktop/local-music.webp" alt="SollinPlayer 桌面端 v1 本地音乐" class="w-full h-16 object-cover object-top block"/><span class="block text-[10px] text-center py-1 text-stone-600 truncate px-1">本地音乐</span></button>
+          <button class="shot-thumb shrink-0 w-32 rounded-lg overflow-hidden border-2 border-transparent opacity-70 hover:opacity-100 transition bg-white" data-caption="SollinPlayer Desktop v1 · 搜索"><img src="assets/desktop/search.webp" alt="SollinPlayer 桌面端 v1 搜索界面" class="w-full h-16 object-cover object-top block"/><span class="block text-[10px] text-center py-1 text-stone-600 truncate px-1">搜索</span></button>
+          <button class="shot-thumb shrink-0 w-32 rounded-lg overflow-hidden border-2 border-transparent opacity-70 hover:opacity-100 transition bg-white" data-caption="SollinPlayer Desktop v1 · 下载管理"><img src="assets/desktop/downloads.webp" alt="SollinPlayer 桌面端 v1 下载管理" class="w-full h-16 object-cover object-top block"/><span class="block text-[10px] text-center py-1 text-stone-600 truncate px-1">下载管理</span></button>
+          <button class="shot-thumb shrink-0 w-32 rounded-lg overflow-hidden border-2 border-transparent opacity-70 hover:opacity-100 transition bg-white" data-caption="SollinPlayer Desktop v1 · 歌单广场"><img src="assets/desktop/playlist-plaza.webp" alt="SollinPlayer 桌面端 v1 歌单广场" class="w-full h-16 object-cover object-top block"/><span class="block text-[10px] text-center py-1 text-stone-600 truncate px-1">歌单广场</span></button>
+          <button class="shot-thumb shrink-0 w-32 rounded-lg overflow-hidden border-2 border-transparent opacity-70 hover:opacity-100 transition bg-white" data-caption="SollinPlayer Desktop v1 · 多样化设置"><img src="assets/desktop/settings.webp" alt="SollinPlayer 桌面端 v1 多样化设置" class="w-full h-16 object-cover object-top block"/><span class="block text-[10px] text-center py-1 text-stone-600 truncate px-1">多样化设置</span></button>
+          <button class="shot-thumb shrink-0 w-32 rounded-lg overflow-hidden border-2 border-transparent opacity-70 hover:opacity-100 transition bg-white" data-caption="SollinPlayer Desktop v1 · 播放界面高度自定义"><img src="assets/desktop/player-custom.webp" alt="SollinPlayer 桌面端 v1 播放界面高度自定义" class="w-full h-16 object-cover object-top block"/><span class="block text-[10px] text-center py-1 text-stone-600 truncate px-1">播放界面自定义</span></button>
+          <button class="shot-thumb shrink-0 w-32 rounded-lg overflow-hidden border-2 border-transparent opacity-70 hover:opacity-100 transition bg-white" data-caption="SollinPlayer Desktop v1 · 桌面歌词"><img src="assets/desktop/desktop-lyrics.webp" alt="SollinPlayer 桌面端 v1 桌面歌词" class="w-full h-16 object-cover object-top block"/><span class="block text-[10px] text-center py-1 text-stone-600 truncate px-1">桌面歌词</span></button>
+          <button class="shot-thumb shrink-0 w-32 rounded-lg overflow-hidden border-2 border-transparent opacity-70 hover:opacity-100 transition bg-white" data-caption="SollinPlayer Desktop v1 · 桌面歌词高度自定义"><img src="assets/desktop/desktop-lyrics-custom.webp" alt="SollinPlayer 桌面端 v1 桌面歌词高度自定义" class="w-full h-16 object-cover object-top block"/><span class="block text-[10px] text-center py-1 text-stone-600 truncate px-1">歌词自定义</span></button>
+          <button class="shot-thumb shrink-0 w-32 rounded-lg overflow-hidden border-2 border-transparent opacity-70 hover:opacity-100 transition bg-white" data-caption="SollinPlayer Desktop v1 · 迷你播放界面"><img src="assets/desktop/mini-player.webp" alt="SollinPlayer 桌面端 v1 迷你播放界面" class="w-full h-16 object-cover object-top block"/><span class="block text-[10px] text-center py-1 text-stone-600 truncate px-1">迷你播放</span></button>
+        </div>
+      </div>
+
+      <!-- 桌面端 v2 画廊 -->
+      <div data-ui="preview" data-platform="desktop" data-version="v2">
+        <div class="rounded-2xl border border-stone-200 bg-white soft-ring p-3 sm:p-6">
+          <div class="flex items-center justify-between px-1 pb-3">
+            <span id="desktop-v2-caption" class="text-xs text-stone-500 font-mono">Sollin V2 · 发现音乐</span>
+            <span class="text-xs text-stone-400">桌面端 v2 · 闭源持续更新</span>
+          </div>
+          <img id="desktop-v2-main" src="assets/desktop/v2/discover.png" alt="Sollin V2 桌面端发现音乐" class="w-full h-auto rounded-xl border border-stone-200 bg-white" />
+          <p id="desktop-v2-desc" class="text-sm text-stone-500 mt-3 px-1">跨平台日推汇总，私人 FM、心动模式与多平台推荐一屏直达。</p>
+        </div>
+        <div class="thumb-rail mt-5 flex gap-3 overflow-x-auto pb-2" data-rail="1" data-main="#desktop-v2-main" data-caption="#desktop-v2-caption" data-desc="#desktop-v2-desc">
+          <button class="shot-thumb shrink-0 w-32 rounded-lg overflow-hidden border-2 border-brand-500 opacity-100 hover:opacity-100 transition bg-white" data-caption="Sollin V2 · 发现音乐" data-desc="跨平台日推汇总，私人 FM、心动模式与多平台推荐一屏直达。"><img src="assets/desktop/v2/discover.png" alt="Sollin V2 桌面端发现音乐" class="w-full h-16 object-cover object-top block"/><span class="block text-[10px] text-center py-1 text-stone-600 truncate px-1">发现音乐</span></button>
+          <button class="shot-thumb shrink-0 w-32 rounded-lg overflow-hidden border-2 border-transparent opacity-70 hover:opacity-100 transition bg-white" data-caption="Sollin V2 · 歌单广场" data-desc="网易云、QQ、酷狗、酷我、咪咕多源歌单广场，分类与推荐齐全。"><img src="assets/desktop/v2/playlist-plaza.png" alt="Sollin V2 桌面端歌单广场" class="w-full h-16 object-cover object-top block"/><span class="block text-[10px] text-center py-1 text-stone-600 truncate px-1">歌单广场</span></button>
+          <button class="shot-thumb shrink-0 w-32 rounded-lg overflow-hidden border-2 border-transparent opacity-70 hover:opacity-100 transition bg-white" data-caption="Sollin V2 · 本地音乐" data-desc="歌曲、收藏、自建歌单、播放历史与听歌统计分页管理。"><img src="assets/desktop/v2/local-music.png" alt="Sollin V2 桌面端本地音乐" class="w-full h-16 object-cover object-top block"/><span class="block text-[10px] text-center py-1 text-stone-600 truncate px-1">本地音乐</span></button>
+          <button class="shot-thumb shrink-0 w-32 rounded-lg overflow-hidden border-2 border-transparent opacity-70 hover:opacity-100 transition bg-white" data-caption="Sollin V2 · 智能歌单" data-desc="按平台、音质、入库时间、播放次数与评分在本机生成智能歌单。"><img src="assets/desktop/v2/smart-playlist.png" alt="Sollin V2 桌面端智能歌单" class="w-full h-16 object-cover object-top block"/><span class="block text-[10px] text-center py-1 text-stone-600 truncate px-1">智能歌单</span></button>
+          <button class="shot-thumb shrink-0 w-32 rounded-lg overflow-hidden border-2 border-transparent opacity-70 hover:opacity-100 transition bg-white" data-caption="Sollin V2 · 听歌统计" data-desc="聆听足迹热力图、播放时段、音质构成与常听歌曲、专辑、歌手榜。"><img src="assets/desktop/v2/stats.png" alt="Sollin V2 桌面端听歌统计" class="w-full h-16 object-cover object-top block"/><span class="block text-[10px] text-center py-1 text-stone-600 truncate px-1">听歌统计</span></button>
+          <button class="shot-thumb shrink-0 w-32 rounded-lg overflow-hidden border-2 border-transparent opacity-70 hover:opacity-100 transition bg-white" data-caption="Sollin V2 · 设置" data-desc="外观、桌面歌词、下载、播放、快捷键、音源配置与存储全项可调。"><img src="assets/desktop/v2/settings.png" alt="Sollin V2 桌面端设置" class="w-full h-16 object-cover object-top block"/><span class="block text-[10px] text-center py-1 text-stone-600 truncate px-1">设置</span></button>
+          <button class="shot-thumb shrink-0 w-32 rounded-lg overflow-hidden border-2 border-transparent opacity-70 hover:opacity-100 transition bg-white" data-caption="Sollin V2 · 播放界面" data-desc="沉浸式写真播放页，模糊背景、逐字歌词与无损标识。"><img src="assets/desktop/v2/player.png" alt="Sollin V2 桌面端播放界面" class="w-full h-16 object-cover object-top block"/><span class="block text-[10px] text-center py-1 text-stone-600 truncate px-1">播放界面</span></button>
+        </div>
+      </div>
+
+      <!-- 移动端 v2 画廊 -->
+      <div data-ui="preview" data-platform="mobile" data-version="v2" class="hidden">
+        <div class="flex flex-col md:flex-row items-center md:items-start justify-center gap-8">
+          <div class="relative shrink-0">
+            <div class="rounded-[2.6rem] border-[9px] border-neutral-900 bg-neutral-900 shadow-2xl overflow-hidden w-[260px] sm:w-[280px] relative">
+              <div class="absolute top-0 left-1/2 -translate-x-1/2 z-10 mt-2 w-24 h-6 bg-neutral-900 rounded-full"></div>
+              <div class="rounded-[1.9rem] overflow-hidden bg-black">
+                <img id="mobile-v2-main" src="assets/mobile/v2/discover.png" alt="SollinPlayer 移动端 v2 发现页" class="w-full aspect-[9/19.2] object-cover object-top" />
+              </div>
+            </div>
+          </div>
+          <div class="flex-1 max-w-xl w-full">
+            <div class="rounded-2xl border border-stone-200 bg-white/70 px-5 py-4 mb-4">
+              <p id="mobile-v2-caption" class="font-serif text-lg font-semibold">发现页 · v2</p>
+              <p id="mobile-v2-desc" class="text-sm text-stone-500 mt-1">全新视觉重构，平台切换、每日推荐、心动模式与风格化推荐一屏直达。</p>
+            </div>
+            <div class="thumb-rail flex md:flex-wrap gap-2.5 overflow-x-auto pb-2" data-rail="1" data-main="#mobile-v2-main" data-caption="#mobile-v2-caption" data-desc="#mobile-v2-desc">
+              <button class="shot-thumb shrink-0 w-[4.6rem] rounded-xl overflow-hidden border-2 border-brand-500 opacity-100 hover:opacity-100 transition bg-white" data-caption="发现页 · v2" data-desc="全新视觉重构，平台切换、每日推荐、心动模式与风格化推荐一屏直达。"><img src="assets/mobile/v2/discover.png" alt="SollinPlayer 移动端 v2 发现页" class="w-full h-28 object-cover object-top block"/><span class="block text-[10px] text-center py-1 text-stone-600 truncate px-1">发现页</span></button>
+              <button class="shot-thumb shrink-0 w-[4.6rem] rounded-xl overflow-hidden border-2 border-transparent opacity-70 hover:opacity-100 transition bg-white" data-caption="歌单详情 · v2" data-desc="分页加载的歌单详情，收藏、刷新、播放、随机播放与音质标识齐全。"><img src="assets/mobile/v2/playlist-detail.png" alt="SollinPlayer 移动端 v2 歌单详情" class="w-full h-28 object-cover object-top block"/><span class="block text-[10px] text-center py-1 text-stone-600 truncate px-1">歌单详情</span></button>
+              <button class="shot-thumb shrink-0 w-[4.6rem] rounded-xl overflow-hidden border-2 border-transparent opacity-70 hover:opacity-100 transition bg-white" data-caption="EQ 均衡器 · v2" data-desc="10 频段曲线调音、前置增益与平直、低音、人声、摇滚等预设。"><img src="assets/mobile/v2/equalizer.png" alt="SollinPlayer 移动端 v2 EQ 均衡器" class="w-full h-28 object-cover object-top block"/><span class="block text-[10px] text-center py-1 text-stone-600 truncate px-1">EQ 均衡器</span></button>
+              <button class="shot-thumb shrink-0 w-[4.6rem] rounded-xl overflow-hidden border-2 border-transparent opacity-70 hover:opacity-100 transition bg-white" data-caption="写真歌词 · v2" data-desc="写真歌词播放界面，动态封面与逐字歌词。"><img src="assets/mobile/v2/player.webp" alt="SollinPlayer 移动端 v2 写真歌词播放界面" class="w-full h-28 object-cover object-top block"/><span class="block text-[10px] text-center py-1 text-stone-600 truncate px-1">写真歌词</span></button>
+              <button class="shot-thumb shrink-0 w-[4.6rem] rounded-xl overflow-hidden border-2 border-transparent opacity-70 hover:opacity-100 transition bg-white" data-caption="封面沉浸 · v2" data-desc="封面模糊铺满的沉浸式播放页，逐字歌词与 FLAC 无损标识。"><img src="assets/mobile/v2/player-immersive.png" alt="SollinPlayer 移动端 v2 封面沉浸播放界面" class="w-full h-28 object-cover object-top block"/><span class="block text-[10px] text-center py-1 text-stone-600 truncate px-1">封面沉浸</span></button>
+              <button class="shot-thumb shrink-0 w-[4.6rem] rounded-xl overflow-hidden border-2 border-transparent opacity-70 hover:opacity-100 transition bg-white" data-caption="黑胶唱机 · v2" data-desc="仿真黑胶唱盘播放界面，唱针转盘与浅色主题。"><img src="assets/mobile/v2/player-vinyl.png" alt="SollinPlayer 移动端 v2 黑胶播放界面" class="w-full h-28 object-cover object-top block"/><span class="block text-[10px] text-center py-1 text-stone-600 truncate px-1">黑胶唱机</span></button>
+              <button class="shot-thumb shrink-0 w-[4.6rem] rounded-xl overflow-hidden border-2 border-transparent opacity-70 hover:opacity-100 transition bg-white" data-caption="Apple Music 风 · v2" data-desc="Apple Music 风格大字歌词播放页，背景随封面变色。"><img src="assets/mobile/v2/player-applemusic.png" alt="SollinPlayer 移动端 v2 Apple Music 风格播放界面" class="w-full h-28 object-cover object-top block"/><span class="block text-[10px] text-center py-1 text-stone-600 truncate px-1">AM 风格</span></button>
+              <button class="shot-thumb shrink-0 w-[4.6rem] rounded-xl overflow-hidden border-2 border-transparent opacity-70 hover:opacity-100 transition bg-white" data-caption="声波核 · v2" data-desc="声波核播放界面，环形声波进度转盘与舞台级沉浸背景。"><img src="assets/mobile/v2/player-sonic.png" alt="SollinPlayer 移动端 v2 声波核播放界面" class="w-full h-28 object-cover object-top block"/><span class="block text-[10px] text-center py-1 text-stone-600 truncate px-1">声波核</span></button>
+              <button class="shot-thumb shrink-0 w-[4.6rem] rounded-xl overflow-hidden border-2 border-transparent opacity-70 hover:opacity-100 transition bg-white" data-caption="外观与界面 · v2" data-desc="主题、背景、字体与播放界面样式全部可自定义。"><img src="assets/mobile/v2/appearance.webp" alt="SollinPlayer 移动端 v2 外观与界面设置" class="w-full h-28 object-cover object-top block"/><span class="block text-[10px] text-center py-1 text-stone-600 truncate px-1">外观界面</span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 移动端 v1 画廊 -->
+      <div data-ui="preview" data-platform="mobile" data-version="v1" class="hidden">
+        <div class="flex flex-col md:flex-row items-center md:items-start justify-center gap-8">
+          <div class="relative shrink-0">
+            <div class="rounded-[2.6rem] border-[9px] border-neutral-900 bg-neutral-900 shadow-2xl overflow-hidden w-[260px] sm:w-[280px] relative">
+              <div class="absolute top-0 left-1/2 -translate-x-1/2 z-10 mt-2 w-24 h-6 bg-neutral-900 rounded-full"></div>
+              <div class="rounded-[1.9rem] overflow-hidden bg-black">
+                <img id="mobile-v1-main" src="assets/mobile/online.webp" alt="SollinPlayer 移动端 v1 在线界面" class="w-full aspect-[9/19.2] object-cover object-top" />
+              </div>
+            </div>
+          </div>
+          <div class="flex-1 max-w-xl w-full">
+            <div class="rounded-2xl border border-stone-200 bg-white/70 px-5 py-4 mb-4">
+              <p id="mobile-v1-caption" class="font-serif text-lg font-semibold">在线界面 · v1</p>
+              <p id="mobile-v1-desc" class="text-sm text-stone-500 mt-1">多平台音源在线浏览，发现页、榜单与歌单一屏直达。</p>
+            </div>
+            <div class="thumb-rail flex md:flex-wrap gap-2.5 overflow-x-auto pb-2" data-rail="1" data-main="#mobile-v1-main" data-caption="#mobile-v1-caption" data-desc="#mobile-v1-desc">
+              <button class="shot-thumb shrink-0 w-[4.6rem] rounded-xl overflow-hidden border-2 border-brand-500 opacity-100 hover:opacity-100 transition bg-white" data-caption="在线界面 · v1" data-desc="多平台音源在线浏览，发现页、榜单与歌单一屏直达。"><img src="assets/mobile/online.webp" alt="SollinPlayer 移动端 v1 在线界面" class="w-full h-28 object-cover object-top block"/><span class="block text-[10px] text-center py-1 text-stone-600 truncate px-1">在线界面</span></button>
+              <button class="shot-thumb shrink-0 w-[4.6rem] rounded-xl overflow-hidden border-2 border-transparent opacity-70 hover:opacity-100 transition bg-white" data-caption="在线歌单页" data-desc="歌单详情分页加载，收藏与随机播放随手可达。"><img src="assets/mobile/online-playlist.webp" alt="SollinPlayer 移动端在线歌单页" class="w-full h-28 object-cover object-top block"/><span class="block text-[10px] text-center py-1 text-stone-600 truncate px-1">在线歌单</span></button>
+              <button class="shot-thumb shrink-0 w-[4.6rem] rounded-xl overflow-hidden border-2 border-transparent opacity-70 hover:opacity-100 transition bg-white" data-caption="本地资料库" data-desc="本地音乐专区，浏览、整理、专辑与歌手视图。"><img src="assets/mobile/local-library.webp" alt="SollinPlayer 移动端本地资料库" class="w-full h-28 object-cover object-top block"/><span class="block text-[10px] text-center py-1 text-stone-600 truncate px-1">本地资料库</span></button>
+              <button class="shot-thumb shrink-0 w-[4.6rem] rounded-xl overflow-hidden border-2 border-transparent opacity-70 hover:opacity-100 transition bg-white" data-caption="听歌统计" data-desc="记录你的听歌数据与偏好。"><img src="assets/mobile/stats.webp" alt="SollinPlayer 移动端听歌统计" class="w-full h-28 object-cover object-top block"/><span class="block text-[10px] text-center py-1 text-stone-600 truncate px-1">听歌统计</span></button>
+              <button class="shot-thumb shrink-0 w-[4.6rem] rounded-xl overflow-hidden border-2 border-transparent opacity-70 hover:opacity-100 transition bg-white" data-caption="EQ 均衡器" data-desc="10 频段拖曲线调音，内置预设并支持保存自定义方案。"><img src="assets/mobile/eq.webp" alt="SollinPlayer 移动端 EQ 均衡器" class="w-full h-28 object-cover object-top block"/><span class="block text-[10px] text-center py-1 text-stone-600 truncate px-1">EQ 均衡器</span></button>
+              <button class="shot-thumb shrink-0 w-[4.6rem] rounded-xl overflow-hidden border-2 border-transparent opacity-70 hover:opacity-100 transition bg-white" data-caption="听歌识曲" data-desc="听到喜欢的歌，一键识别并收藏。"><img src="assets/mobile/recognize.webp" alt="SollinPlayer 移动端听歌识曲" class="w-full h-28 object-cover object-top block"/><span class="block text-[10px] text-center py-1 text-stone-600 truncate px-1">听歌识曲</span></button>
+              <button class="shot-thumb shrink-0 w-[4.6rem] rounded-xl overflow-hidden border-2 border-transparent opacity-70 hover:opacity-100 transition bg-white" data-caption="多样化设置" data-desc="丰富的外观、播放与功能设置项。"><img src="assets/mobile/settings.webp" alt="SollinPlayer 移动端多样化设置" class="w-full h-28 object-cover object-top block"/><span class="block text-[10px] text-center py-1 text-stone-600 truncate px-1">多样化设置</span></button>
+              <button class="shot-thumb shrink-0 w-[4.6rem] rounded-xl overflow-hidden border-2 border-transparent opacity-70 hover:opacity-100 transition bg-white" data-caption="Navidrome 主页" data-desc="连接自建 Navidrome 音乐服，主页内容直达。"><img src="assets/mobile/navidrome-home.webp" alt="SollinPlayer 移动端 Navidrome 主页" class="w-full h-28 object-cover object-top block"/><span class="block text-[10px] text-center py-1 text-stone-600 truncate px-1">Navidrome</span></button>
+              <button class="shot-thumb shrink-0 w-[4.6rem] rounded-xl overflow-hidden border-2 border-transparent opacity-70 hover:opacity-100 transition bg-white" data-caption="Navidrome 发现页" data-desc="浏览自建音乐服的发现内容与歌单。"><img src="assets/mobile/navidrome-discover.webp" alt="SollinPlayer 移动端 Navidrome 发现页" class="w-full h-28 object-cover object-top block"/><span class="block text-[10px] text-center py-1 text-stone-600 truncate px-1">Navidrome 发现</span></button>
+              <button class="shot-thumb shrink-0 w-[4.6rem] rounded-xl overflow-hidden border-2 border-transparent opacity-70 hover:opacity-100 transition bg-white" data-caption="WebDAV 音乐" data-desc="连接 WebDAV 网盘，直接播放并备份本地歌曲。"><img src="assets/mobile/webdav.webp" alt="SollinPlayer 移动端 WebDAV 音乐管理" class="w-full h-28 object-cover object-top block"/><span class="block text-[10px] text-center py-1 text-stone-600 truncate px-1">WebDAV</span></button>
+              <button class="shot-thumb shrink-0 w-[4.6rem] rounded-xl overflow-hidden border-2 border-transparent opacity-70 hover:opacity-100 transition bg-white" data-caption="丰富的云备份" data-desc="自定义备份项，v1 / v2 数据互通。"><img src="assets/mobile/cloud-backup.webp" alt="SollinPlayer 移动端丰富的云备份" class="w-full h-28 object-cover object-top block"/><span class="block text-[10px] text-center py-1 text-stone-600 truncate px-1">云备份</span></button>
+              <button class="shot-thumb shrink-0 w-[4.6rem] rounded-xl overflow-hidden border-2 border-transparent opacity-70 hover:opacity-100 transition bg-white" data-caption="播放界面样式 一" data-desc="多种播放器样式随心切换，歌词与动画各具风格。"><img src="assets/mobile/styles/style1.webp" alt="SollinPlayer 移动端播放界面样式一" class="w-full h-28 object-cover object-top block"/><span class="block text-[10px] text-center py-1 text-stone-600 truncate px-1">样式一</span></button>
+              <button class="shot-thumb shrink-0 w-[4.6rem] rounded-xl overflow-hidden border-2 border-transparent opacity-70 hover:opacity-100 transition bg-white" data-caption="播放界面样式 二" data-desc="多种播放器样式随心切换，歌词与动画各具风格。"><img src="assets/mobile/styles/style2.webp" alt="SollinPlayer 移动端播放界面样式二" class="w-full h-28 object-cover object-top block"/><span class="block text-[10px] text-center py-1 text-stone-600 truncate px-1">样式二</span></button>
+              <button class="shot-thumb shrink-0 w-[4.6rem] rounded-xl overflow-hidden border-2 border-transparent opacity-70 hover:opacity-100 transition bg-white" data-caption="播放界面样式 三" data-desc="多种播放器样式随心切换，歌词与动画各具风格。"><img src="assets/mobile/styles/style3.webp" alt="SollinPlayer 移动端播放界面样式三" class="w-full h-28 object-cover object-top block"/><span class="block text-[10px] text-center py-1 text-stone-600 truncate px-1">样式三</span></button>
+              <button class="shot-thumb shrink-0 w-[4.6rem] rounded-xl overflow-hidden border-2 border-transparent opacity-70 hover:opacity-100 transition bg-white" data-caption="播放界面样式 四" data-desc="多种播放器样式随心切换，歌词与动画各具风格。"><img src="assets/mobile/styles/style4.webp" alt="SollinPlayer 移动端播放界面样式四" class="w-full h-28 object-cover object-top block"/><span class="block text-[10px] text-center py-1 text-stone-600 truncate px-1">样式四</span></button>
+              <button class="shot-thumb shrink-0 w-[4.6rem] rounded-xl overflow-hidden border-2 border-transparent opacity-70 hover:opacity-100 transition bg-white" data-caption="播放界面样式 五" data-desc="多种播放器样式随心切换，歌词与动画各具风格。"><img src="assets/mobile/styles/style5.webp" alt="SollinPlayer 移动端播放界面样式五" class="w-full h-28 object-cover object-top block"/><span class="block text-[10px] text-center py-1 text-stone-600 truncate px-1">样式五</span></button>
+              <button class="shot-thumb shrink-0 w-[4.6rem] rounded-xl overflow-hidden border-2 border-transparent opacity-70 hover:opacity-100 transition bg-white" data-caption="播放界面样式 六" data-desc="多种播放器样式随心切换，歌词与动画各具风格。"><img src="assets/mobile/styles/style6.webp" alt="SollinPlayer 移动端播放界面样式六" class="w-full h-28 object-cover object-top block"/><span class="block text-[10px] text-center py-1 text-stone-600 truncate px-1">样式六</span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- ===== 核心功能 ===== -->
+    <section id="features" class="max-w-7xl mx-auto px-5 sm:px-6 py-20 md:py-24 border-t border-stone-200">
+      <div class="max-w-2xl mb-12 md:mb-14">
+        <span class="text-xs uppercase tracking-[0.18em] text-clay font-semibold">核心功能</span>
+        <h2 class="font-serif text-3xl sm:text-4xl font-semibold mt-2">为听歌这件事，做到极致</h2>
+        <p class="text-stone-600 text-sm sm:text-base mt-3 leading-relaxed">从在线发现到本地收藏，从歌词表达到音质调校，SollinPlayer 覆盖完整的音乐工作流。</p>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
+        <div class="reveal p-7 border border-stone-200 rounded-2xl bg-white/70 hover:border-stone-400 hover:-translate-y-0.5 transition-all">
+          <div class="w-11 h-11 rounded-xl bg-brand-50 flex items-center justify-center text-brand-500 mb-5">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3a9 9 0 1 0 0 18c.9 0 1.3-.9.8-1.5-.4-.6-.1-1.6.8-1.6H15a6 6 0 0 0 6-6c0-4.4-4-8.9-9-8.9Z"/><circle cx="7.5" cy="11.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="12" cy="7.8" r="1.3" fill="currentColor" stroke="none"/><circle cx="16.2" cy="10.6" r="1.3" fill="currentColor" stroke="none"/></svg>
+          </div>
+          <div class="text-clay font-mono text-xs mb-2.5">01 / 界面</div>
+          <h3 class="font-serif text-xl font-semibold mb-2.5">多种播放界面随心换</h3>
+          <p class="text-stone-600 text-sm leading-relaxed">AM 高级版、素雅风、微信聊天、全屏黑胶、沉浸式等多种样式；桌面端另有 Apple Music 界面与迷你模式，动画细腻。</p>
+        </div>
+        <div class="reveal p-7 border border-stone-200 rounded-2xl bg-white/70 hover:border-stone-400 hover:-translate-y-0.5 transition-all">
+          <div class="w-11 h-11 rounded-xl bg-brand-50 flex items-center justify-center text-brand-500 mb-5">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6.5h9M4 12h16M4 17.5h7"/><path stroke-linecap="round" d="M17.5 5.5 20 8l-2.5 2.5M20 8h-6"/></svg>
+          </div>
+          <div class="text-clay font-mono text-xs mb-2.5">02 / 歌词</div>
+          <h3 class="font-serif text-xl font-semibold mb-2.5">逐字歌词与深度自定义</h3>
+          <p class="text-stone-600 text-sm leading-relaxed">支持 TTML 逐字歌词、罗马音与翻译，字号、颜色、对齐、间距自由调整；自动跨平台匹配最优歌词，桌面歌词全平台可定制。</p>
+        </div>
+        <div class="reveal p-7 border border-stone-200 rounded-2xl bg-white/70 hover:border-stone-400 hover:-translate-y-0.5 transition-all">
+          <div class="w-11 h-11 rounded-xl bg-brand-50 flex items-center justify-center text-brand-500 mb-5">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path stroke-linecap="round" d="M7 4v16M12 4v16M17 4v16"/><circle cx="7" cy="9" r="2.1" fill="#FAF6F0"/><circle cx="12" cy="14" r="2.1" fill="#FAF6F0"/><circle cx="17" cy="7" r="2.1" fill="#FAF6F0"/></svg>
+          </div>
+          <div class="text-clay font-mono text-xs mb-2.5">03 / 音质</div>
+          <h3 class="font-serif text-xl font-semibold mb-2.5">EQ 均衡器与音效系统</h3>
+          <p class="text-stone-600 text-sm leading-relaxed">移动端 v2 内置 10 频段均衡器，可拖曲线调音，5 种预设并保存自定义方案；桌面端另有混响、环绕、播放速率与音频可视化。</p>
+        </div>
+        <div class="reveal p-7 border border-stone-200 rounded-2xl bg-white/70 hover:border-stone-400 hover:-translate-y-0.5 transition-all">
+          <div class="w-11 h-11 rounded-xl bg-brand-50 flex items-center justify-center text-brand-500 mb-5">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v11m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+          </div>
+          <div class="text-clay font-mono text-xs mb-2.5">04 / 收藏</div>
+          <h3 class="font-serif text-xl font-semibold mb-2.5">下载与本地资料库</h3>
+          <p class="text-stone-600 text-sm leading-relaxed">自定义下载命名规则、标签编辑器、本地歌单与重复歌曲清理；支持 WebDAV、Navidrome / Emby 连接与音源批量导入。</p>
+        </div>
+        <div class="reveal p-7 border border-stone-200 rounded-2xl bg-white/70 hover:border-stone-400 hover:-translate-y-0.5 transition-all">
+          <div class="w-11 h-11 rounded-xl bg-brand-50 flex items-center justify-center text-brand-500 mb-5">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" stroke-linejoin="round" d="m15.5 8.5-2.1 4.9-4.9 2.1 2.1-4.9 4.9-2.1Z"/></svg>
+          </div>
+          <div class="text-clay font-mono text-xs mb-2.5">05 / 发现</div>
+          <h3 class="font-serif text-xl font-semibold mb-2.5">在线内容与智能换源</h3>
+          <p class="text-stone-600 text-sm leading-relaxed">推荐歌单、排行榜、每日推荐、热门歌手、专辑与评论一应俱全；智能超级换源支持自定义策略与顺序，失效歌曲自动匹配。</p>
+        </div>
+        <div class="reveal p-7 border border-stone-200 rounded-2xl bg-white/70 hover:border-stone-400 hover:-translate-y-0.5 transition-all">
+          <div class="w-11 h-11 rounded-xl bg-brand-50 flex items-center justify-center text-brand-500 mb-5">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 11a8 8 0 0 0-14-5.3L4 8m0 0V4m0 4h4M4 13a8 8 0 0 0 14 5.3L20 16m0 0v4m0-4h-4"/></svg>
+          </div>
+          <div class="text-clay font-mono text-xs mb-2.5">06 / 同步</div>
+          <h3 class="font-serif text-xl font-semibold mb-2.5">五端覆盖与数据互通</h3>
+          <p class="text-stone-600 text-sm leading-relaxed">Android、iOS、鸿蒙、Windows、macOS 全平台可用；云备份让 v1 / v2 歌单、收藏与设置平滑迁移，多设备实时同步。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 下载中心 ===== -->
+    <section id="downloads" class="max-w-7xl mx-auto px-5 sm:px-6 py-20 md:py-24 border-t border-stone-200">
+      <div class="text-center max-w-3xl mx-auto mb-10">
+        <span class="text-xs uppercase tracking-[0.18em] text-clay font-semibold">客户端下载</span>
+        <h2 class="font-serif text-3xl sm:text-4xl font-semibold mt-2 mb-3">免费下载，全平台可用</h2>
+        <p class="text-stone-600 text-sm sm:text-base">移动端推荐下载全新 v2；电脑端 v2 闭源持续更新，v1.3.2 已在 GitHub 完全开源。</p>
+        <div class="flex flex-col items-center gap-3 mt-7">
+          <div class="inline-flex p-1 bg-stone-200/70 rounded-full max-w-xs w-full">
+            <button data-ui="download" data-kind="platform" data-value="desktop" class="tab-btn flex-1 px-5 py-2 rounded-full text-sm font-medium transition-all bg-white text-ink shadow-sm">电脑端</button>
+            <button data-ui="download" data-kind="platform" data-value="mobile" class="tab-btn flex-1 px-5 py-2 rounded-full text-sm font-medium transition-all text-stone-600 hover:text-ink">移动端</button>
+          </div>
+          <div class="inline-flex p-1 bg-stone-200/70 rounded-full max-w-xs w-full">
+            <button data-ui="download" data-kind="version" data-value="v2" class="tab-btn flex-1 px-5 py-2 rounded-full text-sm font-medium transition-all brand-gradient text-white shadow-sm">v2 全新版</button>
+            <button data-ui="download" data-kind="version" data-value="v1" class="tab-btn flex-1 px-5 py-2 rounded-full text-sm font-medium transition-all text-stone-600 hover:text-ink">v1 经典版</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 电脑端 v2 -->
+      <div data-ui="download" data-platform="desktop" data-version="v2" class="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6 max-w-3xl mx-auto">
+        <div class="border border-stone-200 rounded-2xl p-6 sm:p-7 bg-white flex flex-col">
+          <div class="flex items-center justify-between mb-3">
+            <span class="font-semibold text-lg flex items-center gap-2">
+              <svg class="w-5 h-5 text-brand-500" fill="currentColor" viewBox="0 0 24 24"><path d="M3 5.5 10.5 4.5v7H3v-6zM11.5 4.35 21 3v8.5h-9.5V4.35zM3 12.5h7.5v7L3 18.5v-6zM11.5 12.5H21V21l-9.5-1.15v-7.35z"/></svg>Windows
+            </span>
+            <span class="text-xs bg-brand-50 text-brand-600 px-2.5 py-1 rounded-full font-medium">v2 闭源</span>
+          </div>
+          <p class="text-xs text-stone-500 mb-5">支持 Windows 10 / 11，x64 与 ARM64</p>
+          <ul class="text-xs text-stone-600 space-y-1.5 mb-6">
+            <li>· 闭源分发，持续更新维护</li>
+            <li>· 安装后可在软件顶栏查看版本号</li>
+          </ul>
+          <div class="space-y-2.5 mt-auto">
+            <a href="https://share.feijipan.com/s/MW9mBHCu" target="_blank" rel="noopener" class="block text-center brand-gradient text-white py-3 rounded-full text-sm font-medium hover:opacity-90 transition-opacity">下载 v2 最新版</a>
+            <button data-goto-ui="download" data-goto-platform="desktop" data-goto-version="v1" class="w-full text-center border border-stone-300 text-stone-700 py-2.5 rounded-full text-sm hover:border-ink transition-colors">查看开源 v1</button>
+          </div>
+        </div>
+        <div class="border border-stone-200 rounded-2xl p-6 sm:p-7 bg-white flex flex-col">
+          <div class="flex items-center justify-between mb-3">
+            <span class="font-semibold text-lg flex items-center gap-2">
+              <svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><rect x="2.5" y="4" width="19" height="12.5" rx="1.6"/><path stroke-linecap="round" d="M9 20h6M12 16.5V20"/></svg>macOS
+            </span>
+            <span class="text-xs bg-brand-50 text-brand-600 px-2.5 py-1 rounded-full font-medium">v2 闭源</span>
+          </div>
+          <p class="text-xs text-stone-500 mb-5">Universal 版本，适配 Apple Silicon 与 Intel</p>
+          <ul class="text-xs text-stone-600 space-y-1.5 mb-6">
+            <li>· 闭源分发，持续更新维护</li>
+            <li>· 安装后可在软件顶栏查看版本号</li>
+          </ul>
+          <div class="space-y-2.5 mt-auto">
+            <a href="https://share.feijipan.com/s/MW9mBHCu" target="_blank" rel="noopener" class="block text-center brand-gradient text-white py-3 rounded-full text-sm font-medium hover:opacity-90 transition-opacity">下载 v2 最新版</a>
+            <button data-goto-ui="download" data-goto-platform="desktop" data-goto-version="v1" class="w-full text-center border border-stone-300 text-stone-700 py-2.5 rounded-full text-sm hover:border-ink transition-colors">查看开源 v1</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 电脑端 v1（开源） -->
+      <div data-ui="download" data-platform="desktop" data-version="v1" class="hidden grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6 max-w-3xl mx-auto">
+        <div class="border border-stone-200 rounded-2xl p-6 sm:p-7 bg-white flex flex-col">
+          <div class="flex items-center justify-between mb-3">
+            <span class="font-semibold text-lg flex items-center gap-2">
+              <svg class="w-5 h-5 text-brand-500" fill="currentColor" viewBox="0 0 24 24"><path d="M3 5.5 10.5 4.5v7H3v-6zM11.5 4.35 21 3v8.5h-9.5V4.35zM3 12.5h7.5v7L3 18.5v-6zM11.5 12.5H21V21l-9.5-1.15v-7.35z"/></svg>Windows
+            </span>
+            <span class="text-xs bg-stone-100 text-stone-600 px-2.5 py-1 rounded-full font-medium">开源 v1.3.2</span>
+          </div>
+          <p class="text-xs text-stone-500 mb-5">支持 Windows 10 / 11，x64 与 ARM64</p>
+          <ul class="text-xs text-stone-600 space-y-1.5 mb-6">
+            <li>· 代码完全开源，发布于 2026-06-09</li>
+            <li>· 移除账号后端，可自行编译审计</li>
+          </ul>
+          <div class="space-y-2.5 mt-auto">
+            <a href="https://github.com/Ryderwe/Sollin-Music-Desktop" target="_blank" rel="noopener" class="block text-center bg-ink text-white py-3 rounded-full text-sm font-medium hover:bg-stone-800 transition-colors">GitHub 获取 v1.3.2</a>
+            <details class="text-xs text-stone-500 group">
+              <summary class="cursor-pointer text-center py-1.5 hover:text-ink transition-colors list-none">查看历史版本</summary>
+              <div class="mt-2 space-y-1.5 border-t border-stone-100 pt-3 columns-2 gap-x-4">
+                <a class="block hover:text-brand-600" href="https://share.feijipan.com/s/P8bfQR9W" target="_blank" rel="noopener">v1.3.1 下载</a>
+                <a class="block hover:text-brand-600" href="https://share.feijipan.com/s/LVakEgGu" target="_blank" rel="noopener">v1.3.0 下载</a>
+                <a class="block hover:text-brand-600" href="https://share.feijipan.com/s/dxaHwENw" target="_blank" rel="noopener">v1.2.9 下载</a>
+                <a class="block hover:text-brand-600" href="https://pan.ymxx.net/s/oakh9" target="_blank" rel="noopener">v1.2.8 下载</a>
+                <a class="block hover:text-brand-600" href="https://pan.sollin.top/@s/7WMsgMQq" target="_blank" rel="noopener">v1.2.7 下载</a>
+              </div>
+            </details>
+          </div>
+        </div>
+        <div class="border border-stone-200 rounded-2xl p-6 sm:p-7 bg-white flex flex-col">
+          <div class="flex items-center justify-between mb-3">
+            <span class="font-semibold text-lg flex items-center gap-2">
+              <svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><rect x="2.5" y="4" width="19" height="12.5" rx="1.6"/><path stroke-linecap="round" d="M9 20h6M12 16.5V20"/></svg>macOS
+            </span>
+            <span class="text-xs bg-stone-100 text-stone-600 px-2.5 py-1 rounded-full font-medium">开源 v1.3.2</span>
+          </div>
+          <p class="text-xs text-stone-500 mb-5">Universal 版本，适配 Apple Silicon 与 Intel</p>
+          <ul class="text-xs text-stone-600 space-y-1.5 mb-6">
+            <li>· 代码完全开源，发布于 2026-06-09</li>
+            <li>· 移除账号后端，可自行编译审计</li>
+          </ul>
+          <div class="space-y-2.5 mt-auto">
+            <a href="https://github.com/Ryderwe/Sollin-Music-Desktop" target="_blank" rel="noopener" class="block text-center bg-ink text-white py-3 rounded-full text-sm font-medium hover:bg-stone-800 transition-colors">GitHub 获取 v1.3.2</a>
+            <details class="text-xs text-stone-500 group">
+              <summary class="cursor-pointer text-center py-1.5 hover:text-ink transition-colors list-none">查看历史版本</summary>
+              <div class="mt-2 space-y-1.5 border-t border-stone-100 pt-3">
+                <a class="block hover:text-brand-600" href="https://share.feijipan.com/s/P8bfQR9W" target="_blank" rel="noopener">v1.3.1 下载</a>
+                <a class="block hover:text-brand-600" href="https://pan.ymxx.net/s/oakh9" target="_blank" rel="noopener">v1.2.8 下载</a>
+                <a class="block hover:text-brand-600" href="https://pan.sollin.top/@s/7WMsgMQq" target="_blank" rel="noopener">v1.2.7 下载</a>
+              </div>
+            </details>
+          </div>
+        </div>
+      </div>
+
+      <!-- 移动端 v2 -->
+      <div data-ui="download" data-platform="mobile" data-version="v2" class="hidden grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6 max-w-5xl mx-auto">
+        <div class="border border-stone-200 rounded-2xl p-6 sm:p-7 bg-white flex flex-col">
+          <div class="flex items-center justify-between mb-3">
+            <span class="font-semibold text-lg flex items-center gap-2">
+              <svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 9.5 5.5 13l1.5 3.5h10L18.5 13 17 9.5M7 9.5h10M7 9.5 6 8m11 1.5 1-1.5M9 16.5v2m6-2v2"/></svg>Android
+            </span>
+            <span class="text-xs bg-brand-50 text-brand-600 px-2.5 py-1 rounded-full font-medium">v2.0.0+38</span>
+          </div>
+          <p class="text-xs text-stone-500 mb-5">适配 Android 手机、平板与折叠屏</p>
+          <ul class="text-xs text-stone-600 space-y-1.5 mb-6">
+            <li>· 全新视觉重构，重点维护版本</li>
+            <li>· 10 频段 EQ、本地一级页、逐字歌词</li>
+          </ul>
+          <div class="space-y-2.5 mt-auto">
+            <a href="https://share.feijipan.com/s/Wi9oe7OB" target="_blank" rel="noopener" class="block text-center brand-gradient text-white py-3 rounded-full text-sm font-medium hover:opacity-90 transition-opacity">下载 v2 安装包</a>
+            <button data-goto-ui="download" data-goto-platform="mobile" data-goto-version="v1" class="w-full text-center border border-stone-300 text-stone-700 py-2.5 rounded-full text-sm hover:border-ink transition-colors">需要 v1 旧版？</button>
+          </div>
+        </div>
+        <div class="border border-stone-200 rounded-2xl p-6 sm:p-7 bg-white flex flex-col">
+          <div class="flex items-center justify-between mb-3">
+            <span class="font-semibold text-lg flex items-center gap-2">
+              <svg class="w-5 h-5 text-brand-500" fill="currentColor" viewBox="0 0 24 24"><path d="M16.365 1.43c0 1.14-.46 2.2-1.22 2.96-.81.83-2.15 1.47-3.26 1.38-.14-1.1.48-2.27 1.18-3.02.8-.86 2.24-1.5 3.3-1.32zM20.5 17.3c-.6 1.36-.88 1.97-1.64 3.18-1.06 1.68-2.55 3.77-4.4 3.78-1.65.01-2.07-1.08-4.32-1.07-2.25.01-2.71 1.08-4.36 1.07-1.85-.01-3.27-1.92-4.33-3.6-1.5-4.09-1.84-8.89 1.1-11.32 1.06-1.1 2.6-1.75 4.06-1.75 1.63 0 2.66 1.08 3.99 1.08 1.3 0 2.09-1.08 3.97-1.08 1.42 0 2.92.78 3.98 2.11-3.5 1.92-2.93 6.92 3.4 7.67z"/></svg>iOS / iPadOS
+            </span>
+            <span class="text-xs bg-brand-50 text-brand-600 px-2.5 py-1 rounded-full font-medium">v2.0.0+38</span>
+          </div>
+          <p class="text-xs text-stone-500 mb-5">非 App Store 应用，需自签安装</p>
+          <ul class="text-xs text-stone-600 space-y-1.5 mb-6">
+            <li>· 推荐使用 LiveContainer 自签</li>
+            <li>· 与 Android 版功能同步更新</li>
+          </ul>
+          <div class="space-y-2.5 mt-auto">
+            <a href="https://share.feijipan.com/s/Wi9oe7OB" target="_blank" rel="noopener" class="block text-center brand-gradient text-white py-3 rounded-full text-sm font-medium hover:opacity-90 transition-opacity">下载 v2 安装包</a>
+            <a href="https://blog.leguans.cn/posts/LiveContainer" target="_blank" rel="noopener" class="block text-center border border-stone-300 text-stone-700 py-2.5 rounded-full text-sm hover:border-ink transition-colors">查看 iOS 自签教程</a>
+          </div>
+        </div>
+        <div class="border border-stone-200 rounded-2xl p-6 sm:p-7 bg-white flex flex-col">
+          <div class="flex items-center justify-between mb-3">
+            <span class="font-semibold text-lg flex items-center gap-2">
+              <svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2.8 3.5 7.5 12 12.2l8.5-4.7L12 2.8zM3.5 12 12 16.7l8.5-4.7M3.5 16.5 12 21.2l8.5-4.7"/></svg>HarmonyOS
+            </span>
+            <span class="text-xs bg-brand-50 text-brand-600 px-2.5 py-1 rounded-full font-medium">v2.0.0+38</span>
+          </div>
+          <p class="text-xs text-stone-500 mb-5">鸿蒙原生 .hap 安装包，需侧载安装</p>
+          <ul class="text-xs text-stone-600 space-y-1.5 mb-6">
+            <li>· 与 Android / iOS 同步发布</li>
+            <li>· 功能与 v2 移动端保持一致</li>
+          </ul>
+          <div class="space-y-2.5 mt-auto">
+            <a href="https://share.feijipan.com/s/Wg9rQqYa" target="_blank" rel="noopener" class="block text-center brand-gradient text-white py-3 rounded-full text-sm font-medium hover:opacity-90 transition-opacity">下载 .hap 安装包</a>
+            <p class="text-[11px] text-stone-400 text-center leading-relaxed">安装时需在系统设置中允许<br/>第三方应用侧载</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 移动端 v1 -->
+      <div data-ui="download" data-platform="mobile" data-version="v1" class="hidden grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6 max-w-3xl mx-auto">
+        <div class="border border-stone-200 rounded-2xl p-6 sm:p-7 bg-white flex flex-col">
+          <div class="flex items-center justify-between mb-3">
+            <span class="font-semibold text-lg flex items-center gap-2">
+              <svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 9.5 5.5 13l1.5 3.5h10L18.5 13 17 9.5M7 9.5h10M7 9.5 6 8m11 1.5 1-1.5M9 16.5v2m6-2v2"/></svg>Android
+            </span>
+            <span class="text-xs bg-stone-100 text-stone-600 px-2.5 py-1 rounded-full font-medium">v1.5.2 稳定版</span>
+          </div>
+          <p class="text-xs text-stone-500 mb-5">适配 Android 手机与平板</p>
+          <ul class="text-xs text-stone-600 space-y-1.5 mb-6">
+            <li>· v1 最终稳定版，仍可正常使用</li>
+            <li>· v1 / v2 云备份数据互通</li>
+          </ul>
+          <div class="space-y-2.5 mt-auto">
+            <a href="https://share.feijipan.com/s/007h5VrS" target="_blank" rel="noopener" class="block text-center bg-ink text-white py-3 rounded-full text-sm font-medium hover:bg-stone-800 transition-colors">下载 v1.5.2 稳定版</a>
+            <details class="text-xs text-stone-500">
+              <summary class="cursor-pointer text-center py-1.5 hover:text-ink transition-colors list-none">查看历史版本</summary>
+              <div class="mt-2 space-y-1.5 border-t border-stone-100 pt-3 columns-2 gap-x-4">
+                <a class="block hover:text-brand-600" href="https://share.feijipan.com/s/Wbd4MFAF" target="_blank" rel="noopener">v1.4.9</a>
+                <a class="block hover:text-brand-600" href="https://share.feijipan.com/s/CdbxPCJ5" target="_blank" rel="noopener">v1.4.5+10017</a>
+                <a class="block hover:text-brand-600" href="https://share.feijipan.com/s/nLbZInOI" target="_blank" rel="noopener">v1.4.4</a>
+                <a class="block hover:text-brand-600" href="https://share.feijipan.com/s/P3aNWDDm" target="_blank" rel="noopener">v1.4.3</a>
+                <a class="block hover:text-brand-600" href="https://pan.ymxx.net/f/nYMhA/SollinPlayer1.4.1_arm64-v8a.apk" target="_blank" rel="noopener">v1.4.1 arm64</a>
+                <a class="block hover:text-brand-600" href="https://pan.ymxx.net/f/RDoIP/SollinPlayer1.4.1_32bit.apk" target="_blank" rel="noopener">v1.4.1 32bit</a>
+                <a class="block hover:text-brand-600" href="https://pan.ymxx.net/f/a1otA/SollinPlayer1.4.1_x86_64.apk" target="_blank" rel="noopener">v1.4.1 x86_64</a>
+              </div>
+            </details>
+          </div>
+        </div>
+        <div class="border border-stone-200 rounded-2xl p-6 sm:p-7 bg-white flex flex-col">
+          <div class="flex items-center justify-between mb-3">
+            <span class="font-semibold text-lg flex items-center gap-2">
+              <svg class="w-5 h-5 text-brand-500" fill="currentColor" viewBox="0 0 24 24"><path d="M16.365 1.43c0 1.14-.46 2.2-1.22 2.96-.81.83-2.15 1.47-3.26 1.38-.14-1.1.48-2.27 1.18-3.02.8-.86 2.24-1.5 3.3-1.32zM20.5 17.3c-.6 1.36-.88 1.97-1.64 3.18-1.06 1.68-2.55 3.77-4.4 3.78-1.65.01-2.07-1.08-4.32-1.07-2.25.01-2.71 1.08-4.36 1.07-1.85-.01-3.27-1.92-4.33-3.6-1.5-4.09-1.84-8.89 1.1-11.32 1.06-1.1 2.6-1.75 4.06-1.75 1.63 0 2.66 1.08 3.99 1.08 1.3 0 2.09-1.08 3.97-1.08 1.42 0 2.92.78 3.98 2.11-3.5 1.92-2.93 6.92 3.4 7.67z"/></svg>iOS / iPadOS
+            </span>
+            <span class="text-xs bg-stone-100 text-stone-600 px-2.5 py-1 rounded-full font-medium">v1.5.2 稳定版</span>
+          </div>
+          <p class="text-xs text-stone-500 mb-5">非 App Store 应用，需自签安装</p>
+          <ul class="text-xs text-stone-600 space-y-1.5 mb-6">
+            <li>· v1 最终稳定版，仍可正常使用</li>
+            <li>· 推荐使用 LiveContainer 自签</li>
+          </ul>
+          <div class="space-y-2.5 mt-auto">
+            <a href="https://share.feijipan.com/s/007h5VrS" target="_blank" rel="noopener" class="block text-center bg-ink text-white py-3 rounded-full text-sm font-medium hover:bg-stone-800 transition-colors">下载 v1.5.2 稳定版</a>
+            <a href="https://blog.leguans.cn/posts/LiveContainer" target="_blank" rel="noopener" class="block text-center border border-stone-300 text-stone-700 py-2.5 rounded-full text-sm hover:border-ink transition-colors">查看 iOS 自签教程</a>
+            <details class="text-xs text-stone-500">
+              <summary class="cursor-pointer text-center py-1.5 hover:text-ink transition-colors list-none">查看历史版本</summary>
+              <div class="mt-2 space-y-1.5 border-t border-stone-100 pt-3 columns-2 gap-x-4">
+                <a class="block hover:text-brand-600" href="https://share.feijipan.com/s/Wbd4MFAF" target="_blank" rel="noopener">v1.4.9</a>
+                <a class="block hover:text-brand-600" href="https://share.feijipan.com/s/CdbxPCJ5" target="_blank" rel="noopener">v1.4.5+10017</a>
+                <a class="block hover:text-brand-600" href="https://share.feijipan.com/s/nLbZInOI" target="_blank" rel="noopener">v1.4.4</a>
+                <a class="block hover:text-brand-600" href="https://share.feijipan.com/s/P3aNWDDm" target="_blank" rel="noopener">v1.4.3</a>
+                <a class="block hover:text-brand-600" href="https://pan.ymxx.net/f/WzmiK/SollinPlayer1.4.1.ipa" target="_blank" rel="noopener">v1.4.1 .ipa</a>
+              </div>
+            </details>
+          </div>
+        </div>
+      </div>
+      <p data-ui="download" data-platform="mobile" data-version="v1" class="hidden text-center text-xs text-stone-400 mt-5">鸿蒙端（HarmonyOS）仅提供 v2 版本，请切换到 v2 下载。</p>
+    </section>
+    <!-- ===== 更新日志 ===== -->
+    <section id="changelog" class="max-w-4xl mx-auto px-5 sm:px-6 py-20 md:py-24 border-t border-stone-200">
+      <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-10">
+        <div>
+          <span class="text-xs uppercase tracking-[0.18em] text-clay font-semibold">版本记录</span>
+          <h2 class="font-serif text-3xl sm:text-4xl font-semibold mt-2">更新日志</h2>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-3 self-start">
+          <div class="inline-flex p-1 bg-stone-200/70 rounded-full max-w-xs w-full sm:w-auto">
+            <button data-ui="log" data-kind="platform" data-value="mobile" class="tab-btn flex-1 px-5 py-2 rounded-full text-sm font-medium transition-all bg-white text-ink shadow-sm">手机端</button>
+            <button data-ui="log" data-kind="platform" data-value="desktop" class="tab-btn flex-1 px-5 py-2 rounded-full text-sm font-medium transition-all text-stone-600 hover:text-ink">电脑端</button>
+          </div>
+          <div class="inline-flex p-1 bg-stone-200/70 rounded-full max-w-xs w-full sm:w-auto">
+            <button data-ui="log" data-kind="version" data-value="v2" class="tab-btn flex-1 px-5 py-2 rounded-full text-sm font-medium transition-all brand-gradient text-white shadow-sm">v2</button>
+            <button data-ui="log" data-kind="version" data-value="v1" class="tab-btn flex-1 px-5 py-2 rounded-full text-sm font-medium transition-all text-stone-600 hover:text-ink">v1</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 手机端 v2 日志 -->
+      <div data-ui="log" data-platform="mobile" data-version="v2" class="space-y-10">
+        <div class="border-l-2 border-brand-500 pl-6 relative">
+          <div class="w-3 h-3 rounded-full bg-brand-500 absolute -left-[7px] top-1.5 ring-4 ring-cream"></div>
+          <div class="flex flex-wrap items-center gap-3 mb-3">
+            <span class="font-serif text-xl font-semibold">v2.0.0+38</span>
+            <span class="text-xs bg-brand-50 text-brand-600 px-2.5 py-0.5 rounded-full font-medium">最新版本</span>
+          </div>
+          <ul class="text-sm text-stone-600 space-y-2 leading-relaxed">
+            <li><strong class="text-ink font-semibold">[新增]</strong> EQ 均衡器：10 频段可拖曲线调音，内置 5 种预设，支持保存自定义预设。</li>
+            <li><strong class="text-ink font-semibold">[新增]</strong> 动态歌曲封面，在线歌曲优先匹配网易云动态封面。</li>
+            <li><strong class="text-ink font-semibold">[新增]</strong> 「本地」独立为一级页面，iOS 支持扫描已下载歌曲。</li>
+            <li><strong class="text-ink font-semibold">[增强]</strong> TTML 逐字高亮、背景人声独立成行、本地歌词自动识别编码。</li>
+            <li><strong class="text-ink font-semibold">[新增]</strong> 播放解析链路查看、封面下载尺寸与命名设置、启动直接进入播放界面。</li>
+            <li><strong class="text-ink font-semibold">[适配]</strong> 横屏 / 平板改用左侧菜单布局，迷你播放器常驻菜单区。</li>
+            <li><strong class="text-ink font-semibold">[修复]</strong> 播放界面布局、悬浮球初始位置、随机播放「添加下一首」等问题。</li>
+          </ul>
+        </div>
+        <button type="button" data-log-open="mobile" class="inline-flex items-center gap-1.5 text-sm text-clay font-medium hover:text-brand-600 transition-colors">查看手机端完整更新日志
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6 6 6-6 6"/></svg>
+        </button>
+      </div>
+
+      <!-- 手机端 v1 日志 -->
+      <div data-ui="log" data-platform="mobile" data-version="v1" class="hidden space-y-10">
+        <div class="border-l-2 border-brand-500 pl-6 relative">
+          <div class="w-3 h-3 rounded-full bg-brand-500 absolute -left-[7px] top-1.5 ring-4 ring-cream"></div>
+          <div class="flex items-center gap-3 mb-3">
+            <span class="font-serif text-xl font-semibold">v1.5.2</span>
+            <span class="text-xs bg-brand-50 text-brand-600 px-2.5 py-0.5 rounded-full font-medium">v1 最终版</span>
+          </div>
+          <ul class="text-sm text-stone-600 space-y-2 leading-relaxed">
+            <li><strong class="text-ink font-semibold">[新增]</strong> v1 / v2 数据互通云备份，升级 v2 无负担。</li>
+            <li><strong class="text-ink font-semibold">[修复]</strong> QQ 搜索歌曲失效、平板菜单栏偶发显示错误内容。</li>
+            <li><strong class="text-ink font-semibold">[优化]</strong> 用户头像统一通过绑定 QQ 解析，用户中心展示 UID 与 QQ。</li>
+          </ul>
+        </div>
+        <div class="border-l-2 border-stone-300 pl-6 relative">
+          <div class="w-3 h-3 rounded-full bg-stone-300 absolute -left-[7px] top-1.5 ring-4 ring-cream"></div>
+          <div class="flex items-center gap-3 mb-3">
+            <span class="font-serif text-xl font-semibold">v1.4.9</span>
+          </div>
+          <ul class="text-sm text-stone-600 space-y-2 leading-relaxed">
+            <li><strong class="text-ink font-semibold">[新增]</strong> 本地歌曲上传 WebDAV、悬浮歌词逐字与罗马音翻译渲染。</li>
+            <li><strong class="text-ink font-semibold">[新增]</strong> 本地重复歌曲一键清理（自动保留音质最好版本）、在线收藏一键去重。</li>
+            <li><strong class="text-ink font-semibold">[修复]</strong> 随机播放乱跳、AM 高级版逐字歌词重影、缓存命中、原始界面卡顿等问题。</li>
+          </ul>
+        </div>
+        <button type="button" data-log-open="mobile" class="inline-flex items-center gap-1.5 text-sm text-clay font-medium hover:text-brand-600 transition-colors">查看手机端完整更新日志
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6 6 6-6 6"/></svg>
+        </button>
+      </div>
+
+      <!-- 电脑端 v2 日志（闭源，无公开日志） -->
+      <div data-ui="log" data-platform="desktop" data-version="v2" class="hidden">
+        <div class="rounded-2xl border border-stone-200 bg-white/70 px-7 py-12 sm:px-12 text-center">
+          <span class="inline-flex w-16 h-16 rounded-2xl bg-white border border-stone-200 shadow-sm items-center justify-center p-2 mb-5">
+            <img src="assets/logo.png" alt="SollinPlayer Logo" class="w-full h-full object-contain" />
+          </span>
+          <h3 class="font-serif text-xl font-semibold mb-2.5">电脑端 v2 · 闭源持续更新</h3>
+          <p class="text-sm text-stone-500 max-w-lg mx-auto leading-relaxed mb-7">桌面端 v2 以闭源方式分发，更新说明随安装包发布；安装后可在软件顶栏查看当前版本号。开源 v1.3.2 及更早版本的完整更新记录请切换到 v1 查看。</p>
+          <div class="flex flex-wrap items-center justify-center gap-3.5">
+            <a href="https://share.feijipan.com/s/MW9mBHCu" target="_blank" rel="noopener" class="brand-gradient text-white px-7 py-3 rounded-full text-sm font-medium hover:opacity-90 transition-opacity">下载桌面端 v2</a>
+            <button data-goto-ui="log" data-goto-platform="desktop" data-goto-version="v1" class="border border-stone-300 text-ink px-7 py-3 rounded-full text-sm font-medium hover:border-ink transition-colors">查看 v1 更新日志</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 电脑端 v1 日志 -->
+      <div data-ui="log" data-platform="desktop" data-version="v1" class="hidden space-y-10">
+        <div class="border-l-2 border-brand-500 pl-6 relative">
+          <div class="w-3 h-3 rounded-full bg-brand-500 absolute -left-[7px] top-1.5 ring-4 ring-cream"></div>
+          <div class="flex flex-wrap items-center gap-3 mb-3">
+            <span class="font-serif text-xl font-semibold">v1.3.2</span>
+            <span class="text-xs bg-brand-50 text-brand-600 px-2.5 py-0.5 rounded-full font-medium">最新开源版</span>
+            <span class="text-xs text-stone-400">2026-06-09</span>
+          </div>
+          <ul class="text-sm text-stone-600 space-y-2 leading-relaxed">
+            <li><strong class="text-ink font-semibold">[变更]</strong> 移除软件账号后端，软件代码完全开源。</li>
+            <li><strong class="text-ink font-semibold">[恢复]</strong> 小云自建歌单和收藏歌单回归。</li>
+            <li><strong class="text-ink font-semibold">[新增]</strong> 顶栏版本号显示、桌面歌词锁定、macOS 菜单栏歌词与悬浮歌词独立设置。</li>
+            <li><strong class="text-ink font-semibold">[新增]</strong> 歌曲播放链接预加载（1–3 首）。</li>
+          </ul>
+        </div>
+        <div class="border-l-2 border-stone-300 pl-6 relative">
+          <div class="w-3 h-3 rounded-full bg-stone-300 absolute -left-[7px] top-1.5 ring-4 ring-cream"></div>
+          <div class="flex items-center gap-3 mb-3">
+            <span class="font-serif text-xl font-semibold">v1.3.1</span>
+            <span class="text-xs text-stone-400">2026-06-04</span>
+          </div>
+          <ul class="text-sm text-stone-600 space-y-2 leading-relaxed">
+            <li><strong class="text-ink font-semibold">[修复]</strong> 音量调整问题，新增鼠标滚轮调整音量。</li>
+            <li><strong class="text-ink font-semibold">[修复]</strong> 歌手专辑显示不全及其他已知问题。</li>
+          </ul>
+        </div>
+        <div class="border-l-2 border-stone-300 pl-6 relative">
+          <div class="w-3 h-3 rounded-full bg-stone-300 absolute -left-[7px] top-1.5 ring-4 ring-cream"></div>
+          <div class="flex items-center gap-3 mb-3">
+            <span class="font-serif text-xl font-semibold">v1.3.0</span>
+            <span class="text-xs text-stone-400">2026-05-30</span>
+          </div>
+          <ul class="text-sm text-stone-600 space-y-2 leading-relaxed">
+            <li><strong class="text-ink font-semibold">[新增]</strong> 全新顶栏布局、Apple Music 播放界面（设置 → 外观）。</li>
+            <li><strong class="text-ink font-semibold">[新增]</strong> lx 数据备份，支持多设备实时同步歌单数据。</li>
+            <li><strong class="text-ink font-semibold">[优化]</strong> 重写桌面歌词，修复 QQ 音乐歌词问题，整体性能提升。</li>
+          </ul>
+        </div>
+        <div class="border-l-2 border-stone-300 pl-6 relative">
+          <div class="w-3 h-3 rounded-full bg-stone-300 absolute -left-[7px] top-1.5 ring-4 ring-cream"></div>
+          <div class="flex items-center gap-3 mb-3">
+            <span class="font-serif text-xl font-semibold">v1.2.9</span>
+            <span class="text-xs text-stone-400">2026-05-12</span>
+          </div>
+          <ul class="text-sm text-stone-600 space-y-2 leading-relaxed">
+            <li><strong class="text-ink font-semibold">[新增]</strong> 智能超级换源，支持高自由度自定义换源规则。</li>
+            <li><strong class="text-ink font-semibold">[新增]</strong> 软件背景支持纯色、渐变与自定义图片。</li>
+            <li><strong class="text-ink font-semibold">[优化]</strong> 下载管理支持删除与一键停止任务，修复多项致命问题。</li>
+          </ul>
+        </div>
+        <button type="button" data-log-open="desktop" class="inline-flex items-center gap-1.5 text-sm text-clay font-medium hover:text-brand-600 transition-colors">查看电脑端完整更新日志
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6 6 6-6 6"/></svg>
+        </button>
+      </div>
+    </section>
+
+    <!-- ===== 常见问题 ===== -->
+    <section id="faq" class="max-w-4xl mx-auto px-5 sm:px-6 py-20 md:py-24 border-t border-stone-200">
+      <div class="mb-10">
+        <span class="text-xs uppercase tracking-[0.18em] text-clay font-semibold">支持与答疑</span>
+        <h2 class="font-serif text-3xl sm:text-4xl font-semibold mt-2">常见问题</h2>
+      </div>
+      <div class="space-y-3.5">
+        <details class="group border border-stone-200 rounded-2xl bg-white/70 px-6 py-5">
+          <summary class="flex items-center justify-between gap-4 cursor-pointer list-none font-medium text-ink">iOS 怎么安装？为什么 App Store 搜不到？<span class="faq-plus shrink-0 w-7 h-7 rounded-full bg-stone-100 flex items-center justify-center text-stone-500"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 5v14M5 12h14"/></svg></span></summary>
+          <div class="faq-body"><div class="overflow-hidden text-sm text-stone-600 leading-relaxed pt-3">SollinPlayer 未上架 App Store，iOS 安装包需通过自签工具（如 LiveContainer）签名后安装，完整步骤可参考 <a class="text-brand-600 underline underline-offset-2" href="https://blog.leguans.cn/posts/LiveContainer" target="_blank" rel="noopener">iOS 自签教程</a>。</div></div>
+        </details>
+        <details class="group border border-stone-200 rounded-2xl bg-white/70 px-6 py-5">
+          <summary class="flex items-center justify-between gap-4 cursor-pointer list-none font-medium text-ink">鸿蒙端如何安装？<span class="faq-plus shrink-0 w-7 h-7 rounded-full bg-stone-100 flex items-center justify-center text-stone-500"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 5v14M5 12h14"/></svg></span></summary>
+          <div class="faq-body"><div class="overflow-hidden text-sm text-stone-600 leading-relaxed pt-3">鸿蒙端提供原生 <code class="text-xs bg-stone-100 px-1.5 py-0.5 rounded">.hap</code> 安装包，需通过侧载方式安装：下载后打开文件，按系统提示在设置中允许第三方应用侧载即可。</div></div>
+        </details>
+        <details class="group border border-stone-200 rounded-2xl bg-white/70 px-6 py-5">
+          <summary class="flex items-center justify-between gap-4 cursor-pointer list-none font-medium text-ink">v2 和 v1 有什么区别？升级后数据会丢吗？<span class="faq-plus shrink-0 w-7 h-7 rounded-full bg-stone-100 flex items-center justify-center text-stone-500"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 5v14M5 12h14"/></svg></span></summary>
+          <div class="faq-body"><div class="overflow-hidden text-sm text-stone-600 leading-relaxed pt-3">v2 是移动端的全新重构：全新视觉语言、高级动效与手机 / 平板 / 折叠屏自适应布局，后续功能迭代以 v2 为主。v1 仍可正常使用，通过云备份即可实现 v1 / v2 歌单、收藏与设置平滑互通。</div></div>
+        </details>
+        <details class="group border border-stone-200 rounded-2xl bg-white/70 px-6 py-5">
+          <summary class="flex items-center justify-between gap-4 cursor-pointer list-none font-medium text-ink">电脑端 v2 为什么不开源？<span class="faq-plus shrink-0 w-7 h-7 rounded-full bg-stone-100 flex items-center justify-center text-stone-500"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 5v14M5 12h14"/></svg></span></summary>
+          <div class="faq-body"><div class="overflow-hidden text-sm text-stone-600 leading-relaxed pt-3">桌面端 v2 以闭源方式持续分发与维护；v1.3.2 已移除账号后端并在 <a class="text-brand-600 underline underline-offset-2" href="https://github.com/Ryderwe/Sollin-Music-Desktop" target="_blank" rel="noopener">GitHub</a> 完全开源，可继续使用与学习参考。</div></div>
+        </details>
+        <details id="disclaimer" class="group border border-stone-200 rounded-2xl bg-white/70 px-6 py-5">
+          <summary class="flex items-center justify-between gap-4 cursor-pointer list-none font-medium text-ink">软件提供音源吗？使用是否合规？<span class="faq-plus shrink-0 w-7 h-7 rounded-full bg-stone-100 flex items-center justify-center text-stone-500"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 5v14M5 12h14"/></svg></span></summary>
+          <div class="faq-body"><div class="overflow-hidden text-sm text-stone-600 leading-relaxed pt-3 space-y-2">
+            <p>软件本身不含任何受版权保护的第三方内容，仅为技术框架；在线功能接口均来自 GitHub 等开源社区的公开项目（包括 lx-music-desktop、api-enhanced 等），开发者不参与任何音源文件的分发与制作。</p>
+            <p>本软件仅供学习与研究使用，请在下载后 24 小时内删除，并支持正版音乐。因不当使用产生的法律责任由用户自行承担。</p>
+          </div></div>
+        </details>
+        <details class="group border border-stone-200 rounded-2xl bg-white/70 px-6 py-5">
+          <summary class="flex items-center justify-between gap-4 cursor-pointer list-none font-medium text-ink">遇到播放或下载问题怎么办？<span class="faq-plus shrink-0 w-7 h-7 rounded-full bg-stone-100 flex items-center justify-center text-stone-500"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 5v14M5 12h14"/></svg></span></summary>
+          <div class="faq-body"><div class="overflow-hidden text-sm text-stone-600 leading-relaxed pt-3">移动端 v2 可在播放页查看「播放解析链路」，播放问题一目了然；仍无法解决可加入官方 QQ 群 <strong class="text-ink font-semibold">1079058222</strong> 反馈。
+            <button id="copy-qq" class="ml-2 inline-flex items-center gap-1.5 border border-stone-300 hover:border-ink transition-colors rounded-full px-3.5 py-1.5 text-xs font-medium text-ink">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="8" y="3" width="12" height="13" rx="2"/><path stroke-linecap="round" d="M16 5h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H8M4 7h12v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7Z"/></svg>
+              复制群号
+            </button>
+          </div></div>
+        </details>
+      </div>
+    </section>
+  </main>
+  <!-- ===== 页脚 ===== -->
+  <footer class="border-t border-stone-200 bg-creamdeep/50">
+    <div class="max-w-7xl mx-auto px-5 sm:px-6 py-14">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-10 pb-12">
+        <div class="col-span-2 md:col-span-1">
+          <div class="flex items-center gap-2.5 mb-4">
+            <span class="w-9 h-9 rounded-xl bg-white border border-stone-200/80 shadow-sm flex items-center justify-center p-1">
+              <img src="assets/logo.png" alt="SollinPlayer Logo" class="w-full h-full object-contain" />
+            </span>
+            <span class="font-serif text-xl font-semibold">SollinPlayer</span>
+          </div>
+          <p class="text-xs text-stone-500 leading-relaxed">一个全能的音乐播放器<br/>Android · iOS · 鸿蒙 · Windows · macOS</p>
+        </div>
+        <div>
+          <h4 class="font-semibold text-sm mb-4">产品</h4>
+          <ul class="space-y-2.5 text-xs text-stone-600">
+            <li><a href="#preview" class="hover:text-ink transition-colors">界面演示</a></li>
+            <li><a href="#features" class="hover:text-ink transition-colors">核心功能</a></li>
+            <li><a href="#downloads" class="hover:text-ink transition-colors">客户端下载</a></li>
+            <li><a href="#changelog" class="hover:text-ink transition-colors">更新日志</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="font-semibold text-sm mb-4">资源</h4>
+          <ul class="space-y-2.5 text-xs text-stone-600">
+            <li><a href="https://github.com/Ryderwe/Sollin-Music-Desktop" target="_blank" rel="noopener" class="hover:text-ink transition-colors">桌面端 GitHub 仓库</a></li>
+            <li><a href="https://blog.leguans.cn/posts/LiveContainer" target="_blank" rel="noopener" class="hover:text-ink transition-colors">iOS 自签教程</a></li>
+            <li><button type="button" data-log-open="mobile" class="hover:text-ink transition-colors">手机端完整日志</button></li>
+            <li><button type="button" data-log-open="desktop" class="hover:text-ink transition-colors">电脑端完整日志</button></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="font-semibold text-sm mb-4">支持</h4>
+          <ul class="space-y-2.5 text-xs text-stone-600">
+            <li><a href="#faq" class="hover:text-ink transition-colors">常见问题</a></li>
+            <li><a href="#disclaimer" class="hover:text-ink transition-colors">免责声明</a></li>
+            <li><a href="https://ryderwe.github.io/astro-sollin/" target="_blank" rel="noopener" class="hover:text-ink transition-colors">官方网站</a></li>
+            <li class="text-stone-500">QQ 群：1079058222</li>
+          </ul>
+        </div>
+      </div>
+      <div class="border-t border-stone-200 pt-7 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-stone-500">
+        <p>© 2026 SollinPlayer. All rights reserved.</p>
+        <p class="text-center sm:text-right">本软件仅供学习与研究使用，请于下载后 24 小时内删除，并支持正版音乐。</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Toast -->
+  <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-ink text-cream text-sm px-5 py-2.5 rounded-full shadow-lg opacity-0 pointer-events-none transition-opacity duration-300 z-[60]">已复制</div>
+
+  <script>
+    // ===== 两级 Tab：平台 + 版本（演示 / 下载 / 日志）=====
+    var TAB_BASE = 'tab-btn flex-1 px-5 py-2 rounded-full text-sm font-medium transition-all ';
+    var UI_STATE = {
+      preview: { platform: 'desktop', version: 'v2' },
+      download: { platform: 'desktop', version: 'v2' },
+      log: { platform: 'mobile', version: 'v2' }
+    };
+    function renderUI(ui) {
+      var st = UI_STATE[ui];
+      document.querySelectorAll('[data-ui="' + ui + '"]').forEach(function (el) {
+        if (el.dataset.kind) {
+          var on = el.dataset.value === st[el.dataset.kind];
+          el.className = TAB_BASE + (on
+            ? (el.dataset.kind === 'platform' ? 'bg-white text-ink shadow-sm' : 'brand-gradient text-white shadow-sm')
+            : 'text-stone-600 hover:text-ink');
+        } else {
+          el.classList.toggle('hidden', !(el.dataset.platform === st.platform && el.dataset.version === st.version));
+        }
+      });
+    }
+    document.querySelectorAll('[data-ui][data-kind]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var ui = btn.dataset.ui;
+        UI_STATE[ui][btn.dataset.kind] = btn.dataset.value;
+        renderUI(ui);
+      });
+    });
+    document.querySelectorAll('[data-goto-ui]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var ui = btn.dataset.gotoUi;
+        UI_STATE[ui].platform = btn.dataset.gotoPlatform;
+        UI_STATE[ui].version = btn.dataset.gotoVersion;
+        renderUI(ui);
+      });
+    });
+    Object.keys(UI_STATE).forEach(renderUI);
+
+    // ===== 演示画廊（rail 上用 data-main / data-caption / data-desc 指定元素）=====
+    document.querySelectorAll('[data-rail]').forEach(function (rail) {
+      var main = document.querySelector(rail.dataset.main);
+      var cap = rail.dataset.caption ? document.querySelector(rail.dataset.caption) : null;
+      var desc = rail.dataset.desc ? document.querySelector(rail.dataset.desc) : null;
+      rail.addEventListener('click', function (e) {
+        var thumb = e.target.closest('.shot-thumb');
+        if (!thumb) return;
+        var img = thumb.querySelector('img');
+        main.src = img.src;
+        main.alt = img.alt;
+        if (cap) cap.textContent = thumb.dataset.caption;
+        if (desc && thumb.dataset.desc) desc.textContent = thumb.dataset.desc;
+        rail.querySelectorAll('.shot-thumb').forEach(function (t) {
+          t.classList.remove('border-brand-500', 'opacity-100');
+          t.classList.add('border-transparent', 'opacity-70');
+        });
+        thumb.classList.remove('border-transparent', 'opacity-70');
+        thumb.classList.add('border-brand-500', 'opacity-100');
+      });
+    });
+
+    // ===== 移动端导航菜单 =====
+    var menuBtn = document.getElementById('nav-menu-btn');
+    var menu = document.getElementById('nav-menu');
+    menuBtn.addEventListener('click', function () { menu.classList.toggle('hidden'); });
+    menu.querySelectorAll('a').forEach(function (a) {
+      a.addEventListener('click', function () { menu.classList.add('hidden'); });
+    });
+
+    // ===== 复制 QQ 群号 =====
+    function showToast(text) {
+      var t = document.getElementById('toast');
+      t.textContent = text;
+      t.classList.remove('opacity-0');
+      clearTimeout(t._timer);
+      t._timer = setTimeout(function () { t.classList.add('opacity-0'); }, 2000);
+    }
+    document.getElementById('copy-qq').addEventListener('click', function () {
+      var num = '1079058222';
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(num).then(function () { showToast('QQ 群号已复制：' + num); }, function () { showToast('QQ 群号：' + num); });
+      } else {
+        var input = document.createElement('input');
+        input.value = num; document.body.appendChild(input); input.select();
+        try { document.execCommand('copy'); showToast('QQ 群号已复制：' + num); } catch (e) { showToast('QQ 群号：' + num); }
+        document.body.removeChild(input);
+      }
+    });
+
+    // ===== 滚动揭示 =====
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce || !('IntersectionObserver' in window)) {
+      document.querySelectorAll('.reveal').forEach(function (el) { el.classList.add('in'); });
+    } else {
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) { if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); } });
+      }, { threshold: 0.12 });
+      document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
+    }
+  </script>
+
+    <!-- ===== 完整更新日志独立界面 ===== -->
+    <div id="log-full" class="fixed inset-0 z-[80] hidden bg-cream overflow-y-auto" role="dialog" aria-modal="true" aria-label="完整更新日志">
+      <header class="sticky top-0 z-10 bg-cream/90 backdrop-blur border-b border-stone-200">
+        <div class="max-w-3xl mx-auto px-5 sm:px-6 py-3 flex items-center justify-between gap-3">
+          <button type="button" data-log-close class="inline-flex items-center gap-1.5 text-sm font-medium text-stone-600 hover:text-ink transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 12H5m6 6-6-6 6-6"/></svg> 返回</button>
+          <span class="hidden sm:block font-serif text-lg font-semibold text-ink">完整更新日志</span>
+          <div class="inline-flex p-1 bg-stone-200/70 rounded-full text-sm shrink-0">
+            <button type="button" data-log-tab="mobile" class="px-4 py-1.5 rounded-full font-medium transition-all bg-white text-ink shadow-sm">手机端</button>
+            <button type="button" data-log-tab="desktop" class="px-4 py-1.5 rounded-full font-medium transition-all text-stone-600 hover:text-ink">电脑端</button>
+          </div>
+        </div>
+      </header>
+      <div class="max-w-3xl mx-auto px-5 sm:px-6 py-10">
+<div data-log-panel="mobile"><div class="rounded-2xl border border-stone-200 bg-white/70 p-5 mb-10 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4"><span class="text-sm text-stone-500 shrink-0">最新安装包</span><div class="flex flex-wrap gap-2.5"><a href="https://share.feijipan.com/s/Wi9oe7OB" target="_blank" rel="noopener" class="brand-gradient text-white text-xs sm:text-sm px-4 py-2 rounded-full font-medium hover:opacity-90 transition-opacity">v2.0.0+38 安卓 / iOS</a><a href="https://share.feijipan.com/s/Wg9rQqYa" target="_blank" rel="noopener" class="brand-gradient text-white text-xs sm:text-sm px-4 py-2 rounded-full font-medium hover:opacity-90 transition-opacity">鸿蒙 .hap</a><a href="https://share.feijipan.com/s/007h5VrS" target="_blank" rel="noopener" class="border border-stone-300 text-ink text-xs sm:text-sm px-4 py-2 rounded-full font-medium hover:border-ink transition-colors">v1.5.2 旧版</a></div></div><div class="flex items-center gap-3 mb-7 mt-2"><span class="text-xs font-semibold tracking-[0.18em] text-clay">V2 全新版</span><span class="h-px flex-1 bg-stone-200"></span></div><div class="space-y-9 mb-12"><div class="border-l-2 border-brand-500 pl-6 relative"><div class="w-3 h-3 rounded-full bg-brand-500 absolute -left-[7px] top-1.5 ring-4 ring-cream"></div><div class="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2"><span class="font-serif text-xl font-semibold">v2.0.0+38</span><span class="text-xs bg-brand-50 text-brand-600 px-2.5 py-0.5 rounded-full font-medium">最新版本</span></div><p class="text-xs text-stone-400 mb-2">Android 2.0.0+38 · iOS 2.0.0+38 · 鸿蒙 2.0.0+38</p><div><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">新功能</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增 EQ 均衡器，10 频段可拖曲线调音，内置 5 种预设，支持保存自定义预设。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增动态歌曲封面，在线歌曲优先匹配网易云动态封面。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">「本地」独立为一级页面，新增 iOS 扫描已下载歌曲，扫描入口集中管理。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">歌词解析增强：TTML 逐字高亮、背景人声独立成行，本地歌词自动识别编码。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增「播放解析链路」查看，播放问题一目了然。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增封面下载尺寸与下载命名方式设置。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增「启动进入播放界面」，可直接进播放页开始听歌。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">横屏 / 平板改用左侧菜单布局，迷你播放器常驻菜单区。</li></ul><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">修复</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复播放界面布局、悬浮球初始位置、随机播放「添加下一首」等问题。</li></ul></div></div></div><div class="flex items-center gap-3 mb-7 mt-2"><span class="text-xs font-semibold tracking-[0.18em] text-clay">V1 经典版</span><span class="h-px flex-1 bg-stone-200"></span></div><div class="space-y-9"><div class="border-l-2 border-brand-500 pl-6 relative"><div class="w-3 h-3 rounded-full bg-brand-500 absolute -left-[7px] top-1.5 ring-4 ring-cream"></div><div class="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2"><span class="font-serif text-xl font-semibold">v1.5.2</span><span class="text-xs bg-brand-50 text-brand-600 px-2.5 py-0.5 rounded-full font-medium">v1 最终版</span></div><p class="text-xs text-stone-400 mb-2">Android 1.5.2 · iOS 1.5.2</p><div><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">修改与优化</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">删除管理员聊天、网关切换、故障转移及服务器头像上传相关代码。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复 QQ 搜索歌曲失效的问题。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">用户头像统一通过绑定 QQ 解析。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">用户中心展示 UID 和 QQ，并支持绑定或更换 QQ。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增 v1/v2 数据互通云备份。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复平板菜单栏偶发显示错误内容的问题。</li></ul></div></div><div class="border-l-2 border-stone-300 pl-6 relative"><div class="w-3 h-3 rounded-full bg-stone-300 absolute -left-[7px] top-1.5 ring-4 ring-cream"></div><div class="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2"><span class="font-serif text-xl font-semibold">v1.4.9</span></div><p class="text-xs text-stone-400 mb-2">Android 1.4.9 · iOS 1.4.9</p><div><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">修复</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复随机播放状态下点击歌曲会乱跳的问题。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复 AM 高级版逐字歌词上浮重影问题。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复了间奏点不跟随歌词对齐方式的问题。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复了原始播放界面卡顿问题。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复了已有缓存的在线歌曲再次播放不走缓存的问题。</li></ul><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">新功能</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增本地歌曲上传 WebDAV 的功能。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">AM 高级版和 Apple Music 播放界面的歌词下方新增评论按钮。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">安卓悬浮歌词新增逐字歌词、罗马音翻译的显示和渲染。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增检测本地重复歌曲的功能，支持一键删除重复项（自动保留音质最好的那个）。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">在线收藏列表支持一键去重（歌单 → 在线喜欢 → 顶部一键去重）。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">播放界面更多面板新增一键更换播放界面样式的功能。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">安卓通知栏卡片新增播放顺序快捷切换按钮。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">迷你播放器新增播放状态信息（获取播放链接、缓冲）。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">歌词对齐方式改成各个播放界面独立设置（歌词预览支持独立设置）。</li></ul><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">优化</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">优化音质徽章。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">优化 AM 高级版的扫光动画。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">增强一定的后台留存能力（未实测）。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">优化账号登录逻辑，不再频繁掉线。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">优化了播放界面的字号设置。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">优化了播放界面的上下一曲图标。</li></ul><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">变更</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">网关切换后强制重启 App。</li></ul></div></div><div class="border-l-2 border-stone-300 pl-6 relative"><div class="w-3 h-3 rounded-full bg-stone-300 absolute -left-[7px] top-1.5 ring-4 ring-cream"></div><div class="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2"><span class="font-serif text-xl font-semibold">v1.4.8</span></div><p class="text-xs text-stone-400 mb-2">Android 1.4.8 · iOS 1.4.8</p><div><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">修复</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复了网易云同步到官方收藏接口失效的问题。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复了数据同步存在的 bug，现在已完美支持实时同步。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复了歌单歌曲按名称排序失效问题。</li></ul><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">新功能</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增全局字体设置，歌词字体优先级大于全局字体，可满足不同字体显示需求。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增所有歌词的对齐方式统一设置入口，方便用户调整歌词显示布局。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">用户中心新增查询绑定的激活码功能，便于用户查看相关信息。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">用户中心新增强制获取赞助状态功能，提升赞助相关体验。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">资料库的歌曲支持隐藏，隐藏后可在高级设置里面取消隐藏。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增电池优化入口，可帮助用户优化设备电池使用情况。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增常驻通知的可选项（保活）。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">歌单支持单曲移除，此前只能批量移除。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">启动自动播放新增继续上次播放进度功能。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">重构历史记录界面，支持单曲删除与一键播放，改成时间轴模式，可查看最近 7 天的记录。</li></ul><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">界面优化</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">重做了播放界面的更多面板 UI。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">优化了聊天歌词播放界面的 UI 问题。</li></ul><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">性能提升</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">大幅度提升在线的平台榜单歌单的加载速度。</li></ul></div></div><div class="border-l-2 border-stone-300 pl-6 relative"><div class="w-3 h-3 rounded-full bg-stone-300 absolute -left-[7px] top-1.5 ring-4 ring-cream"></div><div class="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2"><span class="font-serif text-xl font-semibold">v1.4.7</span></div><p class="text-xs text-stone-400 mb-2">Android 1.4.7 · iOS 1.4.7</p><div><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">新功能</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">在所有播放界面新增歌词进度偏移设置，并添加快捷按钮。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">在设置中新增全局播放界面歌词样式设置，可统一设置播放界面歌词样式。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">将播放器内部的字体设置移动到外观设置中。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增资料库文件夹视图，支持屏蔽文件夹。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">LX 脚本新增一键更新功能，无需再复制 URL 导入，更新后自动替换旧版本。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">在线歌单新增按添加时间排序功能，再次点击可切换为倒序排列。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">歌单分区内的歌单新增支持排序。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增设置搜索功能。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增多种外部导入图片的持久化。</li></ul><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">修复</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复了严重的软件周期性卡顿问题。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复了逐字歌词卡顿问题。</li></ul><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">优化</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">优化资料库扫描逻辑。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">优化了赞助状态逻辑。</li></ul></div></div><div class="border-l-2 border-stone-300 pl-6 relative"><div class="w-3 h-3 rounded-full bg-stone-300 absolute -left-[7px] top-1.5 ring-4 ring-cream"></div><div class="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2"><span class="font-serif text-xl font-semibold">v1.4.6</span></div><p class="text-xs text-stone-400 mb-2">Android 1.4.6 · iOS 1.4.6</p><div><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">修复</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复小秋平台、小芸平台封面太糊的问题。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复播放界面手机横屏显示异常的问题。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复平板分辨率横屏显示不完整的问题。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复部分音源导入失败的问题。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复部分 UI 显示 bug。</li></ul><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">新功能</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增封面长按下载。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">在外观里新增非平板分辨率的横屏界面效果切换。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">在线本地歌单支持编辑名称和封面。</li></ul><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">适配</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">适配了所有播放界面的平板模式。</li></ul><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">优化</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">优化沉浸式播放界面 UI。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">重做 AM 高级版和沉浸式播放界面的逐字歌词动画。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">优化播放界面的发热问题。</li></ul></div></div><div class="border-l-2 border-stone-300 pl-6 relative"><div class="w-3 h-3 rounded-full bg-stone-300 absolute -left-[7px] top-1.5 ring-4 ring-cream"></div><div class="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2"><span class="font-serif text-xl font-semibold">v1.4.5</span></div><p class="text-xs text-stone-400 mb-2">Android 1.4.5 (10017) · iOS 1.4.5 (10017)</p><div><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">新功能</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增全屏黑胶播放样式，支持切换多种黑胶样式模板。</li></ul><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">优化</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">优化了液体玻璃底栏样式。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400"><strong class="text-ink font-semibold">播放界面优化</strong>：<ul class="mt-2 space-y-1.5 text-stone-500"><li class="relative pl-3.5 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-px before:bg-stone-300">合并播放顺序 / 随机 / 循环为统一的播放模式按钮，并在沉浸、黑胶、经典、原始界面同步调整队列按钮位置。</li><li class="relative pl-3.5 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-px before:bg-stone-300">沉浸 / 经典的「加入歌单」移到更多面板；进度条上方多余队列 / 定时 / 信息等按钮移除。</li><li class="relative pl-3.5 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-px before:bg-stone-300">原始界面上方只保留上一曲、播放、下一曲；下方按钮改为纯图标，播放模式放到喜欢左侧。</li><li class="relative pl-3.5 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-px before:bg-stone-300">沉浸和原始的歌词预览增高。</li><li class="relative pl-3.5 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-px before:bg-stone-300">沉浸歌词页现在点击歌词区域空白处可回到封面页。</li><li class="relative pl-3.5 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-px before:bg-stone-300">聊天歌词加大气泡间距，当前歌词滚动到接近底部的「最新消息」位置，顶部颜色统一，音质标签改为进度条下方绝对居中。</li></ul></li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400"><strong class="text-ink font-semibold">资料库顶部卡片优化</strong>：<ul class="mt-2 space-y-1.5 text-stone-500"><li class="relative pl-3.5 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-px before:bg-stone-300">删除排序方式可见文字，仅保留排序图标。</li><li class="relative pl-3.5 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-px before:bg-stone-300">删除「随机播放」可见文字，仅保留随机播放图标。</li><li class="relative pl-3.5 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-px before:bg-stone-300">图标尺寸减小。</li><li class="relative pl-3.5 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-px before:bg-stone-300">右侧操作组保持右对齐。</li></ul></li></ul><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">删除</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">移除了 Nocturne UI 风格。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">移除了电台 tab。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">移除了「小秋主页」个人主页。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">移除了哔哩哔哩音乐平台。</li></ul><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">修复</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复了全局播放背景消失的问题。</li></ul></div></div><div class="border-l-2 border-stone-300 pl-6 relative"><div class="w-3 h-3 rounded-full bg-stone-300 absolute -left-[7px] top-1.5 ring-4 ring-cream"></div><div class="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2"><span class="font-serif text-xl font-semibold">v1.4.4</span></div><p class="text-xs text-stone-400 mb-2">Android 1.4.4 (10016) · iOS 1.4.4 (10016)</p><div><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">新功能</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">连接服务器新增 emby 音乐服（未具体测试可用性）。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">重构沉浸模式的样式和歌词页面。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增全局背景颜色、图片。</li></ul><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">修复</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复了数据同步部分无法连接的问题。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复经典界面的歌词下拉手势冲突问题。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复了长时间后启动软件不恢复播放队列的问题。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">也许修复了一下蓝牙歌词推送不够及时的问题。</li></ul><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">优化</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">优化部分 UI 问题。</li></ul></div></div><div class="border-l-2 border-stone-300 pl-6 relative"><div class="w-3 h-3 rounded-full bg-stone-300 absolute -left-[7px] top-1.5 ring-4 ring-cream"></div><div class="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2"><span class="font-serif text-xl font-semibold">v1.4.3</span></div><p class="text-xs text-stone-400 mb-2">Android 1.4.3 (10014) · iOS 1.4.3 (10014)</p><div><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">新功能</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增数据同步服务器，可连接 lx 服务器实时同步数据。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">资料库顶部的 TV 按钮支持隐藏。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">听歌识曲位置移动到搜索页面右上角。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">支持导入在线歌单为 lxmc 文件。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">通知栏新增收藏按钮。</li></ul><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">修复</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复保底 128k 的问题。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复隐藏了歌单无法恢复问题。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复了无法备份听歌统计数据问题。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复安卓多任务卡片有好几个、名字不对的问题。</li></ul><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">优化</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">优化多个播放界面的操作逻辑问题。</li></ul></div></div><div class="border-l-2 border-stone-300 pl-6 relative"><div class="w-3 h-3 rounded-full bg-stone-300 absolute -left-[7px] top-1.5 ring-4 ring-cream"></div><div class="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2"><span class="font-serif text-xl font-semibold">v1.4.2</span></div><p class="text-xs text-stone-400 mb-2">Android 1.4.2 (10013) · iOS 1.4.2 (10013)</p><div><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">新功能</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400"><strong class="text-ink font-semibold">智能换源</strong>：新增智能换源<ul class="mt-2 space-y-1.5 text-stone-500"><li class="relative pl-3.5 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-px before:bg-stone-300">支持自定义换源策略（降级 / 跨平台 / 跨脚本）。</li><li class="relative pl-3.5 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-px before:bg-stone-300">支持自定义换源顺序。</li></ul></li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400"><strong class="text-ink font-semibold">音源指定</strong>：支持不同的音乐平台指定不同的音源。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400"><strong class="text-ink font-semibold">适配模式</strong>：新增适配 TV 模式（虚拟光标），在软件资料库右上角点击 TV 图标即可。</li></ul><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">修复</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复 AM 高级版逐字动画的问题。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复 QQ 音乐下载歌曲不是逐字歌词的问题。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">大概修复了沉浸模式部分分辨率会出现横线的问题。</li></ul><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">优化</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">优化部分 UI 显示。</li></ul></div></div><div class="border-l-2 border-stone-300 pl-6 relative"><div class="w-3 h-3 rounded-full bg-stone-300 absolute -left-[7px] top-1.5 ring-4 ring-cream"></div><div class="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2"><span class="font-serif text-xl font-semibold">v1.4.1</span></div><p class="text-xs text-stone-400 mb-2">Android 1.4.1 · iOS 1.4.1</p><div><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">新功能</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">支持自定义 EQ 调音预设。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增 App 图标更换。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增独立歌单菜单。</li></ul><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">修复</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复偶发性无声播放的问题。</li></ul><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">优化</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">减小浮动菜单的高度。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">增强和其他 App 一起播放，更加不容易被打断。</li></ul></div></div><div class="border-l-2 border-stone-300 pl-6 relative"><div class="w-3 h-3 rounded-full bg-stone-300 absolute -left-[7px] top-1.5 ring-4 ring-cream"></div><div class="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2"><span class="font-serif text-xl font-semibold">v1.4.0</span></div><p class="text-xs text-stone-400 mb-2">Android 1.4.0 · iOS 1.4.0</p><div><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">新功能</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增 EQ 调音（赞助）。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增在线顶部标签隐藏和音乐平台的隐藏。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增和管理员聊天未读红点。</li></ul><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">修复</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复沉浸式歌词字号过大就显示不全的问题。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复在线界面始终显示发现页面的问题。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复安卓无法选择 lxmc 文件。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复 QQ 歌词问题。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复网易云无法把歌曲添加到官方自建歌单的问题。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复图片背景被拉伸的问题。</li></ul><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">优化</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">优化沉浸式播放界面的歌词颜色和底部取色，现在观感更统一。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">重做 AM 高级版的自适应背景颜色。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">优化部分性能问题。</li></ul><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">变更</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">移除部分界面的进度指示条，例如歌词显示界面。</li></ul></div></div><div class="border-l-2 border-stone-300 pl-6 relative"><div class="w-3 h-3 rounded-full bg-stone-300 absolute -left-[7px] top-1.5 ring-4 ring-cream"></div><div class="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2"><span class="font-serif text-xl font-semibold">v1.3.9</span></div><p class="text-xs text-stone-400 mb-2">Android 1.3.9 (10009) · iOS 1.3.9 (10009)</p><div><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">新功能</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">推出全新 AM 高级版播放界面，动画更细腻，并支持 TTML。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增素雅播放界面。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">所有播放界面启用全新音质徽章。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增发现详情页样式设置。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">侧边栏新增歌单快捷入口，并支持在界面布局中自定义显示内容。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增歌手搜索，支持 wy、kg、qq。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">支持自定义下载文件命名规则。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增支持修改主句、副句、罗马音、翻译字号大小。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增联系管理员消息功能。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增网易云心动模式与哔哩哔哩认证实验支持。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">Navidrome 歌曲列表改成分页加载。</li></ul><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">优化与修复</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">优化播放界面歌词间距与分行逻辑。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">优化 Navidrome 横屏显示。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复本地 FLAC 解码切歌卡顿问题。</li></ul></div></div><div class="border-l-2 border-stone-300 pl-6 relative"><div class="w-3 h-3 rounded-full bg-stone-300 absolute -left-[7px] top-1.5 ring-4 ring-cream"></div><div class="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2"><span class="font-serif text-xl font-semibold">v1.3.8</span></div><p class="text-xs text-stone-400 mb-2">Android 1.3.8 (10008) · iOS 1.3.8 (10008)</p><div><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">新功能</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增微信聊天风格播放界面。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">在线喜欢新增定位与随机播放按钮。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增悬浮球、标签、下拉列表三种平台切换样式中的两种新样式。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">在线顶部搜索卡片支持隐藏。</li></ul><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">修复与优化</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复小芸每日推荐显示异常。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复酷我没有歌词的问题。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复云备份失败。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复无法跨平台换源的问题。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">优化侧边栏用户卡片样式。</li></ul></div></div><div class="border-l-2 border-stone-300 pl-6 relative"><div class="w-3 h-3 rounded-full bg-stone-300 absolute -left-[7px] top-1.5 ring-4 ring-cream"></div><div class="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2"><span class="font-serif text-xl font-semibold">v1.3.6</span></div><p class="text-xs text-stone-400 mb-2">Android 1.3.6 · iOS 1.3.6</p><div><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">新功能</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增浮动底栏。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增播放歌曲自动匹配最优歌词。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">在线页面的平台切换改为滑动手势球。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">小芸新增热门歌手、本周最热歌曲、最新专辑、听歌排行和收藏歌单。</li></ul><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">修复与优化</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复底部菜单无法隐藏的问题。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">优化迷你播放器栏样式。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">优化侧边栏展开收起按钮，支持长按拖动位置。</li></ul></div></div><div class="border-l-2 border-stone-300 pl-6 relative"><div class="w-3 h-3 rounded-full bg-stone-300 absolute -left-[7px] top-1.5 ring-4 ring-cream"></div><div class="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2"><span class="font-serif text-xl font-semibold">v1.3.5</span></div><p class="text-xs text-stone-400 mb-2">Android 1.3.5 (10005)</p><div><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">新功能</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增听歌统计。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增备份设置、自定义备份项和备份文件导入导出。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增歌词大小、间距、颜色设置。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增搜索保留上次设置。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增播放界面音质切换。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增多个菜单栏样式与滚动动画。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增 WebDAV 服务器连接，用于网盘歌曲播放。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">所有播放界面接入歌曲评论功能。</li></ul><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">修复</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复网易云私人雷达读取数据错误。</li></ul></div></div><div class="border-l-2 border-stone-300 pl-6 relative"><div class="w-3 h-3 rounded-full bg-stone-300 absolute -left-[7px] top-1.5 ring-4 ring-cream"></div><div class="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2"><span class="font-serif text-xl font-semibold">v1.2.5</span></div><p class="text-xs text-stone-400 mb-2">Android 1.2.5</p><div><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">版本记录</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增歌词、封面等标签匹配。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">优化播放稳定性。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增批量导入音源文件。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增播放界面屏幕常亮功能。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复 iOS 小组件相关问题。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复小云歌单仅显示 500 首的问题。</li></ul></div></div></div><div class="mt-12 pt-6 border-t border-stone-200 flex flex-wrap items-center justify-end gap-3"><button type="button" data-log-close class="inline-flex items-center gap-1.5 text-sm text-stone-500 hover:text-ink transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 12H5m6 6-6-6 6-6"/></svg> 返回</button></div></div><div data-log-panel="desktop" class="hidden"><div class="rounded-2xl border border-stone-200 bg-white/70 p-5 mb-8 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4"><span class="text-sm text-stone-500 shrink-0">最新安装包</span><div class="flex flex-wrap gap-2.5"><a href="https://share.feijipan.com/s/MW9mBHCu" target="_blank" rel="noopener" class="brand-gradient text-white text-xs sm:text-sm px-4 py-2 rounded-full font-medium hover:opacity-90 transition-opacity">v2 Windows / macOS</a><a href="https://github.com/Ryderwe/Sollin-Music-Desktop" target="_blank" rel="noopener" class="border border-stone-300 text-ink text-xs sm:text-sm px-4 py-2 rounded-full font-medium hover:border-ink transition-colors">开源 v1.3.2</a></div></div><div class="rounded-2xl border border-stone-200 bg-white/70 p-6 mb-10"><div class="flex flex-wrap items-center gap-3 mb-2"><h3 class="font-serif text-lg font-semibold">电脑端 v2 · 闭源持续更新</h3><span class="text-xs bg-stone-100 text-stone-500 px-2.5 py-0.5 rounded-full font-medium">无公开日志</span></div><p class="text-sm text-stone-500 leading-relaxed mb-4">桌面端 v2 以闭源方式分发，更新说明随安装包发布；安装后可在软件顶栏查看当前版本号。以下为开源 v1.3.2 及更早版本的完整记录。</p><div class="flex flex-wrap gap-2.5"><a href="https://share.feijipan.com/s/MW9mBHCu" target="_blank" rel="noopener" class="brand-gradient text-white text-xs sm:text-sm px-4 py-2 rounded-full font-medium hover:opacity-90 transition-opacity">下载 v2 最新版</a><a href="https://github.com/Ryderwe/Sollin-Music-Desktop" target="_blank" rel="noopener" class="border border-stone-300 text-ink text-xs sm:text-sm px-4 py-2 rounded-full font-medium hover:border-ink transition-colors">v1.3.2 开源仓库</a></div></div><div class="flex items-center gap-3 mb-7 mt-2"><span class="text-xs font-semibold tracking-[0.18em] text-clay">V1 开源版</span><span class="h-px flex-1 bg-stone-200"></span></div><div class="space-y-9"><div class="border-l-2 border-brand-500 pl-6 relative"><div class="w-3 h-3 rounded-full bg-brand-500 absolute -left-[7px] top-1.5 ring-4 ring-cream"></div><div class="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2"><span class="font-serif text-xl font-semibold">v1.3.2</span><span class="text-xs bg-brand-50 text-brand-600 px-2.5 py-0.5 rounded-full font-medium">最新开源版</span><span class="text-xs text-stone-400">2026-06-09</span></div><p class="text-xs text-stone-400 mb-2">Windows 1.3.2 · macOS 1.3.2</p><div><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">功能变更</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">移除软件账号后端，软件代码全开源。</li></ul><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">功能恢复</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">小云自建歌单和收藏歌单加回来了。</li></ul><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">新功能</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">顶栏新增版本号显示，更方便查看更新。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">支持在软件右下角的「更多」里面解锁 / 锁定桌面歌词。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">macOS 的菜单栏歌词和桌面悬浮歌词独立设置。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增歌曲播放链接预加载（1–3 首），设置入口在音质选择下方。</li></ul></div></div><div class="border-l-2 border-stone-300 pl-6 relative"><div class="w-3 h-3 rounded-full bg-stone-300 absolute -left-[7px] top-1.5 ring-4 ring-cream"></div><div class="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2"><span class="font-serif text-xl font-semibold">v1.3.1</span><span class="text-xs text-stone-400">2026-06-04</span></div><p class="text-xs text-stone-400 mb-2">Windows 1.3.1 · macOS 1.3.1</p><div><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">修复</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复音量调整问题，新增鼠标滚轮调整音量。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复其他 bug。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复歌手专辑显示不全。</li></ul></div></div><div class="border-l-2 border-stone-300 pl-6 relative"><div class="w-3 h-3 rounded-full bg-stone-300 absolute -left-[7px] top-1.5 ring-4 ring-cream"></div><div class="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2"><span class="font-serif text-xl font-semibold">v1.3.0</span><span class="text-xs text-stone-400">2026-05-30</span></div><p class="text-xs text-stone-400 mb-2">Windows 1.3.0 · macOS 1.3.0</p><div><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">新功能</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">优化软件布局，新增顶栏。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增 Apple Music 播放界面（设置 → 外观）。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增 lx 数据备份（支持服务端和客户端，可与其他设备实时同步歌单数据）。</li></ul><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">修复</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复 QQ 音乐歌词问题。</li></ul><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">优化</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">重写桌面歌词。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">优化过于不流畅的 bug。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">优化性能。</li></ul></div></div><div class="border-l-2 border-stone-300 pl-6 relative"><div class="w-3 h-3 rounded-full bg-stone-300 absolute -left-[7px] top-1.5 ring-4 ring-cream"></div><div class="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2"><span class="font-serif text-xl font-semibold">v1.2.9</span><span class="text-xs text-stone-400">2026-05-12</span></div><p class="text-xs text-stone-400 mb-2">Windows 1.2.9 · macOS 1.2.9</p><div><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">新功能</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增智能超级换源，支持高自由度自定义设置换源规则。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">软件背景支持自定义（纯色、渐变、自定义图片）。</li></ul><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">修复</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复部分设置项无法持久化。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复歌词设置部分按钮无法点击的问题。</li></ul><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">优化</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">下载管理界面优化，支持删除正在下载的任务和一键停止任务。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">优化性能问题。</li></ul><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">注意</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">无法在线下载请去群内下载，QQ 群：1079058222。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400"><strong class="text-ink font-semibold">强烈建议更新，解决了很多致命问题！</strong></li></ul></div></div><div class="border-l-2 border-stone-300 pl-6 relative"><div class="w-3 h-3 rounded-full bg-stone-300 absolute -left-[7px] top-1.5 ring-4 ring-cream"></div><div class="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2"><span class="font-serif text-xl font-semibold">v1.2.8</span></div><p class="text-xs text-stone-400 mb-2">Windows 1.2.8 (10208) · macOS 1.2.8 (10208)</p><div><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">新功能</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">支持 TTML 歌词渲染，逐字歌词显示能力增强。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">支持自定义歌词颜色与字号。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增迷你模式切换。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增本地歌曲标签编辑器。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">完善歌词播放与歌单广场功能。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增封面背景主题构建能力，并优化歌词面板背景。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增下载自定义命名规则。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增屏蔽规则。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增音质徽章展示。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增歌单分页加载。</li></ul><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">体验优化</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">统一歌单库与备份处理逻辑。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">精简并修复核心逻辑，提升整体稳定性。</li></ul><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">问题修复</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复点击下载后没有即时反馈的问题。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复下载音频错误使用 php 后缀导致元数据写入失败的问题。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复点击任务栏退出无法退出的问题。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复播放界面卡顿问题。</li></ul></div></div><div class="border-l-2 border-stone-300 pl-6 relative"><div class="w-3 h-3 rounded-full bg-stone-300 absolute -left-[7px] top-1.5 ring-4 ring-cream"></div><div class="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2"><span class="font-serif text-xl font-semibold">v1.2.7</span></div><p class="text-xs text-stone-400 mb-2">Windows 1.2.7 · macOS 1.2.7</p><div><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">版本记录</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复 Windows 无法播放的问题。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增全局快捷键，支持播放暂停、上一曲、下一曲。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">提升稳定性。</li></ul></div></div><div class="border-l-2 border-stone-300 pl-6 relative"><div class="w-3 h-3 rounded-full bg-stone-300 absolute -left-[7px] top-1.5 ring-4 ring-cream"></div><div class="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2"><span class="font-serif text-xl font-semibold">v1.2.6</span></div><p class="text-xs text-stone-400 mb-2">Windows 1.2.6 · macOS 1.2.6</p><div><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">版本记录</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增下载功能。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复声音问题。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增自动跳过不能播放的歌曲。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">优化界面并修复部分问题。</li></ul></div></div><div class="border-l-2 border-stone-300 pl-6 relative"><div class="w-3 h-3 rounded-full bg-stone-300 absolute -left-[7px] top-1.5 ring-4 ring-cream"></div><div class="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2"><span class="font-serif text-xl font-semibold">v1.2.5</span></div><p class="text-xs text-stone-400 mb-2">Windows 1.2.5 · macOS 1.2.5</p><div><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">新增</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增本地音乐专区、本地歌单与本地收藏。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增本地音乐浏览、整理、专辑、歌手、排序与元数据支持。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增完整重构的桌面歌词，支持 macOS 与桌面端使用。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增桌面歌词自定义能力，包括背景颜色、透明度、边框和歌词颜色。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增音频可视化能力。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增音效系统，支持均衡器、混响、环绕和播放速率调节。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增播放页快捷调音入口。</li></ul><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">优化</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">优化设置页音源管理布局。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">优化歌单、排行榜、推荐歌单页面的搜索框样式与布局。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">优化本地音乐页面顶部信息卡片。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">优化播放页歌词交互，支持记住左侧信息面板折叠状态。</li></ul></div></div><div class="border-l-2 border-stone-300 pl-6 relative"><div class="w-3 h-3 rounded-full bg-stone-300 absolute -left-[7px] top-1.5 ring-4 ring-cream"></div><div class="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2"><span class="font-serif text-xl font-semibold">v1.2.3</span></div><p class="text-xs text-stone-400 mb-2">Windows 1.2.3 · macOS 1.2.3</p><div><p class="text-[11px] font-semibold tracking-wider text-clay mt-4 mb-1.5 first:mt-0">版本记录</p><ul class="text-sm text-stone-600 space-y-1.5 leading-relaxed"><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">优化性能问题。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复 Windows 桌面歌词问题。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">新增数据缓存开关和缓存大小设置。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">修复部分封面问题。</li><li class="relative pl-4 before:content-[''] before:absolute before:left-0 before:top-[0.62em] before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand-400">优化 WebDAV 恢复问题。</li></ul></div></div></div><div class="mt-12 pt-6 border-t border-stone-200 flex flex-wrap items-center justify-end gap-3"><button type="button" data-log-close class="inline-flex items-center gap-1.5 text-sm text-stone-500 hover:text-ink transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 12H5m6 6-6-6 6-6"/></svg> 返回</button></div></div>
+      </div>
+    </div>
+    <script>
+    (function () {
+      var overlay = document.getElementById('log-full');
+      var tabs = overlay.querySelectorAll('[data-log-tab]');
+      var panels = overlay.querySelectorAll('[data-log-panel]');
+      function openLog(which) {
+        tabs.forEach(function (tb) {
+          var on = tb.getAttribute('data-log-tab') === which;
+          tb.classList.toggle('bg-white', on);
+          tb.classList.toggle('text-ink', on);
+          tb.classList.toggle('shadow-sm', on);
+          tb.classList.toggle('text-stone-600', !on);
+        });
+        panels.forEach(function (p) {
+          p.classList.toggle('hidden', p.getAttribute('data-log-panel') !== which);
+        });
+        overlay.classList.remove('hidden');
+        overlay.scrollTop = 0;
+        document.body.style.overflow = 'hidden';
+      }
+      function closeLog() {
+        overlay.classList.add('hidden');
+        document.body.style.overflow = '';
+      }
+      document.addEventListener('click', function (e) {
+        var opener = e.target.closest('[data-log-open]');
+        if (opener) { e.preventDefault(); openLog(opener.getAttribute('data-log-open')); return; }
+        if (e.target.closest('[data-log-close]')) { closeLog(); }
+      });
+      tabs.forEach(function (tb) {
+        tb.addEventListener('click', function () { openLog(tb.getAttribute('data-log-tab')); });
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && !overlay.classList.contains('hidden')) { closeLog(); }
+      });
+    })();
+    </script>
+
+  </body>
+</html>

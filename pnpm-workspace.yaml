@@ -1,6 +1,5 @@
 packages:
   - packages/*
-  - apps/*
 
 catalog:
   "@astrojs/starlight": ^0.38
